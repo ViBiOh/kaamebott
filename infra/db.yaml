@@ -1,0 +1,32 @@
+apiVersion: helm.toolkit.fluxcd.io/v2beta1
+kind: HelmRelease
+metadata:
+  name: kaamebott-db
+  namespace: default
+spec:
+  interval: 120m
+  chart:
+    spec:
+      chart: postgres
+      version: "0.0.29"
+      sourceRef:
+        kind: HelmRepository
+        name: vibioh
+        namespace: default
+      interval: 120m
+  install:
+    crds: Skip
+  maxHistory: 3
+  upgrade:
+    remediation:
+      retries: 3
+  rollback:
+    cleanupOnFail: true
+  values:
+    nameOverride: kaamebott-db
+    config:
+      POSTGRES_DB: kaamebott
+    secrets:
+      POSTGRES_USER: AgBQ1AJMyQs6gNVgXXJJWYFTXYI1Bu5w8+JWcv9FDx7iM3MnpK+yp+JmRJ+GXq5HoHLnlgGfagBXdVQ6robSH5045DVL+xy/x7YSp3DssC7NvNv6uqmOq2eatAEV9yzKW9gJPwkCD8cNNYvUtCtJ6bKvfP9vnVtPSL56fky+nf6TGHgW+X8EeSPOkGkjvpMoQZXr5P5qOLpdhw3MF2Kb5FT9fbtaMWtgiuiKkhUN+sEH4uSDNJcdtbCzMdbZlr+DgA9kXSEAfaRgXAoJwxyARIAUbNMPI6+/uTohsm7Ws/IPKrBn91HDpmMTl4qwUuuM5bzV6mwj9KOiV9XZBWAqEEzzuvwamzKFu1iN4tZBMx8inWuyJsk2b4A3CtwkByEUbyXVvq4XayzfHWG1/MEWfZDO5I3XQdd7xAI8GZeWzHMs7HWop7p73alu2DUJq79yTZw+OIrFuYN7l5AX00O0icxAWNwvCIvJusZ9P/xCmFVYAkMpeVVz53jytZ3BWz0UbE+Ycu9il9ynzJcLMnoeGjleWGFBUWj1bhPWpmYqv/GefTAtEjbgULIRxJGzfLaKk3nsPY8ZTxnc8pIPetsBfkfVOmCHAqG371+hEnMWyE8GgQxXwtazuT1oEXLOyd3FQytrGHH4BeCrpMcUe/zhy4/+td3Jd+MKXBcloq+dlJ+GWhkTkvfCNIdF6qZsHLF3hoRwq1hAOisJR5Y=
+      POSTGRES_PASSWORD: AgBfd7mRo3pWGhheV647bMx+oqipN5yehibp9tmqWLMfJx40zH9bxSoL9qGiazceNQer0kzRjJa+9EkDiyjVxqiWpTVPlgXvOdR+IFfbcijwxriUYuNV31aKmlVGrtIl88J4tZM62fpVL54xRGArtMfH7BGkw5K+fWu2kN1Y8d6oMHzOmswyo1ZatKsxClCY2ZcTS5rXx8skq+OADFAQGsmHQS1ROO3NfPQRgelGOyG7TdIKsaCVb2Cuwde4Efi9bGlcElEljk71FJX48AGIWm1s+QBw2MyJ2LU1s4y5bbeqkwGD3WR0+t5w+WMNLRJG09I/dpKhmY+a3DNaEagHnwH6I/7pIJULK0xWT6lbtsQ7+DQUynapVfJQc+i9tL6I38dl+sum7eTtI49Y4uqsc7qzUUKo7XpodFu333Stunxk7XgbRUqR5NBogJH95PTcNT33aPdgDeVE7NdLczkdJfgm/Sz5XNOwxUIWtD8JLVwUNfi5w7p6rTkwpWU7ZGWKln1UU3XAepMF2BHrrJPTljEY0XsPky1+c2u4TEB4HU+0UEyKt9u1ZjWGkkb6OLIGOcG4FyklmKt9NX2ySzHGPidJjtgOz8vjk/0g2Fmubw/wvUgYpIgpxkDDR4Ibv9tWXLa+rVeYB7bJwLGdcL/xB2kTMz0X0mpLclleDQRzNdAjxOL1MboI5ui1Iugn2pOO0EtNlUmo8nqUCzdRop9kQ8aoaL/f9glzMsLtyipHe6QWd0zSbgVyu7hP2CAxivJ0SmnGYV1JAbID8PrV71Y=
+      FIBR_BACKUP_PASSWORD: AgBrDgUU1Rdd26pm3TgYuyC+8wU1IViFb4Uxb3sQI5h255KA5wjP1X38NCpyR8msyAb/MEQZZdGXU622830vucOR6Wz/RGbEfKZRHJDslsea7tKxDMVxjJOxP21jQzIe+OS+8x1ypmI7Ay4rQgW5H0ASDQp5okSkBToM8gy2Q0Ii3AFN5UdyLVfWC+sdaBMsNWXMfxMUYN6emWTk/bbEU8rmfTFkqf0CSVHZhURkaJu53x8vHK8xSw5mKKYLIsSsjYtE0O+Be91Ur642OjlKYEtTgVkcNjYopHrJTECpnZm/YcB0iZIznNAHvSlLYVnqqlIgatnJTeexqeLxPha5VpuS2FprO3kfmStPy2Mb3t4o6rmPrB1tbDbv6NB/6Y35ARiWjevB8tpHsBwakvRJyMWKlvlNwG2nrZ1evL1PLppE5MG3YifBWEFz0n3fjbNkteJEgFd9WJWnHzpAJSq/d/VVBmmJxGfWXcJ0Gfdt6YMIcF8AlMjRFRMEkOwByoNlj5VffYbKm6/CNtnJfmJN8FrfCp35laUH+vuwwrLOucvMpPnsJoir2zuJLJOI05u637QAk2Fc5PU7rTpYRczzKHPN1fLNrrznBLaEGKmP3lqhvugWS02NgKyW6eCCJPUZCJaSsSHJBbJ+DHb3U44p2YBHUw6p34rJ3CQMH/e/LAnTpgJjKeHfHYZZnMCZujCKXgkprPw2b7q/EWNql7lVCaWWi7ltbBMvHD0Uk9a+ngKD4XXTEqFCPRvvNouApkXJFCkmWoEb7NitezKXFeY=
