@@ -12,7 +12,7 @@ func (a App) getKaamelottBlock(output model.Quote) model.Block {
 	content := fmt.Sprintf("_%s_ %s", output.Character, output.Value)
 
 	text := model.NewText(fmt.Sprintf("*<%s|%s>*\n\n%s", titleLink, output.Context, content))
-	accessory := model.NewAccessory(fmt.Sprintf("%s/images/kaamelott.jpg", a.website), "kaamelott")
+	accessory := model.NewAccessory(fmt.Sprintf("%s/images/kaamelott.png", a.website), "kaamelott")
 
 	return model.NewSection(text, accessory)
 }
