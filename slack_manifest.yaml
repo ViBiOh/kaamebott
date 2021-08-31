@@ -1,0 +1,30 @@
+---
+_metadata:
+  major_version: 1
+  minor_version: 1
+display_information:
+  name: Kaamebott
+  description: Get a Kaamelott quote
+  background_color: "#004492"
+features:
+  bot_user:
+    display_name: Kaamebott
+    always_online: false
+  slash_commands:
+    - command: /kaamelott
+      url: https://kaamebott.vibioh.fr/slack/kaamelott
+      description: Get a kaamelott quote
+      should_escape: false
+oauth_config:
+  redirect_urls:
+    - https://kaamebott.vibioh.fr
+  scopes:
+    bot:
+      - commands
+settings:
+  interactivity:
+    is_enabled: true
+    request_url: https://kaamebott.vibioh.fr/slack/interactive
+  org_deploy_enabled: false
+  socket_mode_enabled: false
+  token_rotation_enabled: false
