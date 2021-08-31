@@ -1,0 +1,37 @@
+apiVersion: helm.toolkit.fluxcd.io/v2beta1
+kind: HelmRelease
+metadata:
+  name: kaamebott-discord
+  namespace: default
+spec:
+  interval: 120m
+  chart:
+    spec:
+      chart: job
+      version: "0.0.7"
+      sourceRef:
+        kind: HelmRepository
+        name: vibioh
+      interval: 120m
+  install:
+    skipCRDs: true
+  maxHistory: 3
+  upgrade:
+    remediation:
+      retries: 3
+  rollback:
+    cleanupOnFail: true
+  values:
+    nameOverride: kaamebott-discord
+    image:
+      name: kaamebottdevops/api
+      tag: "202108312131" # {"$imagepolicy": "default:flux-kaamebott-api:tag"}
+    command:
+      - /discord
+    config:
+      DISCORD_APPLICATION_ID: "882376778943971349"
+      DISCORD_PUBLIC_KEY: d3acdcf3d7dc08c1d32714b3a51b0db4e40041059e075b274d94326011c20a31
+      DISCORD_LOGGER_JSON: "true"
+    secrets:
+      DISCORD_CLIENT_ID: AgCs/Rzu/fdNIfH3qtZrKBPJuTzNXUnugHaVFrzr5nlPzqNXIMyYzgt41EmFegPNPJ2GNMYNVZ7Sx/3sFECCRIb4Jh57SZewJ7hlZ4cwEAh3FeI3fIeW+EWKQMHoqVaPFJynr6KWFg05St7A6SVDK12lDNavnWKUqpu+/tP4W+pEM3I2nAj9ol22CMtgKuv4FrPeY8I5N0aXjaIDUROtVhmbxg1eNMBSu8J58DgfguCbfxjGcd/9CYRtProNiktx5UGf4wXg8G0kQMAs054MwU6PQ6JZTcQTN9j+1ejHmfcr3R5dR6rLmdO2oEnh2QoNLNP3ve0+zDrLnvLwAbu+EZ0BfiHFMS8FMLWVBHQtLmYSbUmRcBlXEQFlBUFMs38I3kU8LliLOuL/ky7RXVl7k0VrMHCfgFbb7+OG6DpRdUqOfoP/JzCR6T2mAneFiHY3xPb6UEq9zFfxZdnc3fa9zGRisAQ47rHhTZtlF6eWBYZWFdlj5kD7RqUL44unvZIYMBjz87gb15BhJG/eyMGaKf8IU6sIC2hsGPUDtpPNh7akb/i7gu/VpXfozSRbNPaSiJ/0mBqnzEdkEYh8m6pYzUHE1NBUX8nTZrjU+zNm+0AlzBepifG8mU0DF60y7wk+a7d6bBYZgsOoLxINiba9SqlNM9aOEaNNue3HeIfsrqSGkLF4A5eYHsBmoQG89iFJ6IJQAZ/SxUlpcHrUYdx0MlILVLY=
+      DISCORD_CLIENT_SECRET: AgDkeiCpc+cMf8yiS0iTM7fgLoo4GFpR+Mk1j967i0/DfVWkiK3cYfS+iHaysd3Qk3lDFwWq7JtdmYcFIdYQrQYWUv3tN4jVRQotsfWooTfDOjs/jT3xFjbYSB/2leUfWDpKZO3hBZYyWKyHeuUE6lZaWJMqScax4R5gpDaG0bLB2Zjx25LJ//NlA4uWfKmTEV7br9I0aT1f0XHcmD03MthBzjDKNNLh3OUCPgHHZGA9p0Lu0noGWRVKpJp1bwTWYuTzP1fxHh3z/d6TUmRbTXmh3BHvb/yA8X+c3xK8rWPpvChZ6GnZHZseANZWoa6TuFdm2v9STq+klUTL5252+DovDBYEmYJRHhR7K0Mw3Da1ep8Zz5fCllgnIgyV9dFRK/3y9aoEkUEHjt2xHhI0Grn7K083elmyhDq+XptyjIozPW1Jqf9OPx6fWEC/nmjuzo86H3KeVAEBACLlA3oeCZ4asAbYAP2g0jRI+yj31zDupIN+SkZe1WrBJW+wxn/xGkG6WHX3ZyHMmOmwJ6BV1P+OGTw/ISEOAB8l9WT0y8zc3U4FWgz3HTgi8KdeH5xe9w5cE0jnXYkJjVx1U/agX4L2S59ecxH1W9gYklKGj76klIm34juynSdtkhFMDzyH3r31qFSyHjpuzeEd9jXN1upeQbDhcgitjQsbkTBN4GtORAVsOBleB6beFcM43oyftdM2yeB0Nd4KRVvN6w++gZhINfAdTOedvzoJ7BvZJKbPjA==
