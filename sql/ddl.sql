@@ -8,6 +8,8 @@ DROP INDEX IF EXISTS quote_key;
 DROP INDEX IF EXISTS collection_id;
 DROP INDEX IF EXISTS collection_name;
 
+DROP SEQUENCE IF EXISTS kaamebott.collection_seq;
+
 DROP SCHEMA IF EXISTS kaamebott;
 
 -- extension
@@ -21,7 +23,7 @@ CREATE SCHEMA kaamebott;
 CREATE SEQUENCE kaamebott.collection_seq;
 CREATE TABLE kaamebott.collection (
   id BIGINT NOT NULL DEFAULT nextval('kaamebott.collection_seq'),
-  name TEXT NOT NULL,
+  name TEXT NOT NULL
 );
 ALTER SEQUENCE kaamebott.collection_seq OWNED BY kaamebott.collection.id;
 

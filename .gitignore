@@ -6,6 +6,7 @@ bin/
 release/
 coverage.*
 profile.out
+.env
 
 # Files
 ca-certificates.crt
