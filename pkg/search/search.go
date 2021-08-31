@@ -34,9 +34,9 @@ var (
 // App of package
 type App struct {
 	dbApp       db.App
-	rendererApp renderer.App
 	random      *rand.Rand
 	value       string
+	rendererApp renderer.App
 }
 
 // Config of package

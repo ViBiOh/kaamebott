@@ -39,7 +39,6 @@ type App struct {
 	clientSecret  string
 	website       string
 	publicKey     []byte
-	guilds        []string
 }
 
 // Config of package
@@ -49,7 +48,6 @@ type Config struct {
 	clientID      *string
 	clientSecret  *string
 	website       *string
-	guilds        *string
 }
 
 // Flags adds flags for configuring package
