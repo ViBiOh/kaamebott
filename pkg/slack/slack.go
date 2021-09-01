@@ -70,6 +70,11 @@ func New(config Config, searchApp search.App) *App {
 // Handler for net/http
 func (a App) Handler() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path == "/oauth" {
+			a.handleOauth(w, r)
+			return
+		}
+
 		if !a.checkSignature(r) {
 			httperror.Unauthorized(w, errors.New("invalid signature"))
 			return
@@ -83,9 +88,6 @@ func (a App) Handler() http.Handler {
 		case http.MethodPost:
 			if r.URL.Path == "/interactive" {
 				a.handleInteract(w, r)
-				return
-			} else if r.URL.Path == "/oauth" {
-				a.handleOauth(w, r)
 				return
 			}
 
