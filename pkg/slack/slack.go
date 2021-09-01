@@ -144,7 +144,7 @@ func (a App) checkSignature(r *http.Request) bool {
 func (a App) handleCommand(w http.ResponseWriter, r *http.Request, commandName, collectionName string) {
 	switch commandName {
 	case commandQuote:
-		a.handleQuote(w, r, collectionName)
+		httpjson.Write(w, http.StatusOK, a.getQuoteBlock(r.Context(), commandName, r.FormValue("text"), ""))
 	default:
 		a.returnEphemeral(w, "On ne comprend pas très bien ce que vous attendez de nous... 🧐")
 	}

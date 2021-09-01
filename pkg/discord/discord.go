@@ -154,9 +154,6 @@ func (a App) handleQuote(w http.ResponseWriter, r *http.Request, webhookMessage 
 		return
 	}
 
-	log := logger.WithField("command", webhookMessage.Data.Name).WithField("guildID", webhookMessage.GuildID).WithField("user", webhookMessage.Member.User.Username).WithField("query", queryValue)
-	log.Info("Discord call")
-
 	quote, recherche, err := a.findQuote(r.Context(), index, queryValue)
 	if err != nil {
 		httperror.InternalServerError(w, err)
@@ -164,7 +161,7 @@ func (a App) handleQuote(w http.ResponseWriter, r *http.Request, webhookMessage 
 	}
 
 	if len(quote.ID) == 0 {
-		log.Warn("No quote found")
+		logger.WithField("command", webhookMessage.Data.Name).WithField("query", queryValue).Warn("No quote found")
 		httpjson.Write(w, http.StatusOK, errorResponse(fmt.Errorf("On n'a rien trouvé pour `%s`", queryValue)))
 		return
 	}

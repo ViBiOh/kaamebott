@@ -6,8 +6,6 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/ViBiOh/httputils/v4/pkg/httpjson"
-	"github.com/ViBiOh/httputils/v4/pkg/logger"
 	"github.com/ViBiOh/kaamebott/pkg/model"
 	"github.com/ViBiOh/kaamebott/pkg/search"
 )
@@ -69,14 +67,6 @@ func (a App) getQuoteResponse(quote model.Quote, query, user string) model.Respo
 			content,
 		},
 	}
-}
-
-func (a App) handleQuote(w http.ResponseWriter, r *http.Request, index string) {
-	query := r.FormValue("text")
-
-	logger.WithField("command", r.FormValue("command")).WithField("query", query).WithField("user", r.FormValue("user_name")).Info("Slack call")
-
-	httpjson.Write(w, http.StatusOK, a.getQuoteBlock(r.Context(), index, query, ""))
 }
 
 func (a App) handleQuoteInteract(r *http.Request, user string, actions []model.InteractiveAction) model.Response {
