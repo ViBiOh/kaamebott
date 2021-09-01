@@ -47,7 +47,7 @@ Usage of kaamebott:
   -corsOrigin string
         [cors] Access-Control-Allow-Origin {KAAMEBOTT_CORS_ORIGIN} (default "*")
   -csp string
-        [owasp] Content-Security-Policy {KAAMEBOTT_CSP} (default "default-src 'self'; base-uri 'self'")
+        [owasp] Content-Security-Policy {KAAMEBOTT_CSP} (default "default-src 'self'; base-uri 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' platform.slack-edge.com")
   -dbHost string
         [db] Host {KAAMEBOTT_DB_HOST}
   -dbMaxConn uint
@@ -123,19 +123,23 @@ Usage of kaamebott:
   -prometheusWriteTimeout string
         [prometheus] Write Timeout {KAAMEBOTT_PROMETHEUS_WRITE_TIMEOUT} (default "10s")
   -publicURL string
-        Public URL {KAAMEBOTT_PUBLIC_URL} (default "http://localhost")
+        Public URL {KAAMEBOTT_PUBLIC_URL} (default "https://kaamebott.vibioh.fr")
   -readTimeout string
         [server] Read Timeout {KAAMEBOTT_READ_TIMEOUT} (default "5s")
   -searchValue string
         [search] Value key {KAAMEBOTT_SEARCH_VALUE} (default "value")
   -shutdownTimeout string
         [server] Shutdown Timeout {KAAMEBOTT_SHUTDOWN_TIMEOUT} (default "10s")
+  -slackClientID string
+        [slack] ClientID {KAAMEBOTT_SLACK_CLIENT_ID}
+  -slackClientSecret string
+        [slack] ClientSecret {KAAMEBOTT_SLACK_CLIENT_SECRET}
   -slackSigningSecret string
         [slack] Signing secret {KAAMEBOTT_SLACK_SIGNING_SECRET}
   -slackWebsite string
         [slack] URL of public website {KAAMEBOTT_SLACK_WEBSITE} (default "https://kaamebott.vibioh.fr")
   -title string
-        Application title {KAAMEBOTT_TITLE} (default "App")
+        Application title {KAAMEBOTT_TITLE} (default "Kaamebott")
   -url string
         [alcotest] URL to check {KAAMEBOTT_URL}
   -userAgent string
