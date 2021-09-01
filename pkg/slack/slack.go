@@ -31,6 +31,8 @@ const (
 
 // Config of package
 type Config struct {
+	clientID      *string
+	clientSecret  *string
 	signingSecret *string
 	website       *string
 }
@@ -38,6 +40,8 @@ type Config struct {
 // App of package
 type App struct {
 	searchApp     search.App
+	clientID      string
+	clientSecret  string
 	website       string
 	signingSecret []byte
 }
@@ -45,14 +49,18 @@ type App struct {
 // Flags adds flags for configuring package
 func Flags(fs *flag.FlagSet, prefix string) Config {
 	return Config{
-		website:       flags.New(prefix, "slack", "Website").Default("https://kaamebott.vibioh.fr", nil).Label("URL of public website").ToString(fs),
+		clientID:      flags.New(prefix, "slack", "ClientID").Default("", nil).Label("ClientID").ToString(fs),
+		clientSecret:  flags.New(prefix, "slack", "ClientSecret").Default("", nil).Label("ClientSecret").ToString(fs),
 		signingSecret: flags.New(prefix, "slack", "SigningSecret").Default("", nil).Label("Signing secret").ToString(fs),
+		website:       flags.New(prefix, "slack", "Website").Default("https://kaamebott.vibioh.fr", nil).Label("URL of public website").ToString(fs),
 	}
 }
 
 // New creates new App from Config
 func New(config Config, searchApp search.App) *App {
 	return &App{
+		clientID:      *config.clientID,
+		clientSecret:  *config.clientSecret,
 		signingSecret: []byte(*config.signingSecret),
 		website:       *config.website,
 		searchApp:     searchApp,
@@ -75,6 +83,9 @@ func (a App) Handler() http.Handler {
 		case http.MethodPost:
 			if r.URL.Path == "/interactive" {
 				a.handleInteract(w, r)
+				return
+			} else if r.URL.Path == "/oauth" {
+				a.handleOauth(w, r)
 				return
 			}
 
