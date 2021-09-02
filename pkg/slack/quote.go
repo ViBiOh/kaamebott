@@ -53,7 +53,7 @@ func (a App) getQuoteResponse(quote model.Quote, query, user string) model.Respo
 			ReplaceOriginal: true,
 			Blocks: []model.Block{
 				content,
-				model.NewActions(quote.Collection, cancelButton, model.NewButtonElement("Une autre ?", nextValue, fmt.Sprintf("%s_%s", query, quote.ID), ""),
+				model.NewActions(quote.Collection, cancelButton, model.NewButtonElement("Une autre ?", nextValue, fmt.Sprintf("%s@%s", query, quote.ID), ""),
 					model.NewButtonElement("Envoyer", sendValue, quote.ID, "primary")),
 			},
 		}
@@ -87,12 +87,12 @@ func (a App) handleQuoteInteract(r *http.Request, user string, actions []model.I
 	}
 
 	if action.ActionID == nextValue {
-		parts := strings.Split(action.Value, "_")
-		if len(parts) < 2 {
-			return model.NewEphemeralMessage(fmt.Sprintf("La valeur du bouton semble incomplète: %s", action.Value))
+		lastIndex := strings.LastIndexAny(action.Value, "@")
+		if lastIndex < 1 {
+			return model.NewEphemeralMessage(fmt.Sprintf("La valeur du bouton semble incorrecte: %s", action.Value))
 		}
 
-		return a.getQuoteBlock(ctx, action.BlockID, parts[0], parts[1])
+		return a.getQuoteBlock(ctx, action.BlockID, action.Value[:lastIndex], action.Value[lastIndex+1:])
 	}
 
 	return model.NewEphemeralMessage("On ne comprend pas l'action à effectuer")
