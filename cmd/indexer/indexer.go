@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"database/sql"
 	"encoding/json"
 	"errors"
 	"flag"
@@ -14,6 +13,7 @@ import (
 	"github.com/ViBiOh/httputils/v4/pkg/db"
 	"github.com/ViBiOh/httputils/v4/pkg/logger"
 	"github.com/ViBiOh/kaamebott/pkg/model"
+	"github.com/jackc/pgx/v4"
 )
 
 func main() {
@@ -26,11 +26,7 @@ func main() {
 
 	quoteDB, err := db.New(dbConfig)
 	logger.Fatal(err)
-	defer func() {
-		if err := quoteDB.Close(); err != nil {
-			logger.Error("error while closing database connection: %s", err)
-		}
-	}()
+	defer quoteDB.Close()
 
 	quotes, collectionName, err := readQuotes(*inputFile)
 	if err != nil {
@@ -78,9 +74,9 @@ func readQuotes(filename string) ([]model.Quote, string, error) {
 func getOrCreateCollection(ctx context.Context, quoteDB db.App, name string) (uint64, error) {
 	var collectionID uint64
 
-	if err := quoteDB.Get(ctx, func(row *sql.Row) error {
+	if err := quoteDB.Get(ctx, func(row pgx.Row) error {
 		err := row.Scan(&collectionID)
-		if errors.Is(err, sql.ErrNoRows) {
+		if errors.Is(err, pgx.ErrNoRows) {
 			return nil
 		}
 		return err
@@ -103,16 +99,15 @@ func getOrCreateCollection(ctx context.Context, quoteDB db.App, name string) (ui
 func insertQuotes(ctx context.Context, quoteDB db.App, collectionID uint64, quotes []model.Quote) error {
 	quotesCount, index := len(quotes), 0
 
-	feedLine := func(stmt *sql.Stmt) error {
+	feedLine := func() ([]interface{}, error) {
 		if quotesCount == index {
-			return db.ErrBulkEnded
+			return nil, nil
 		}
 
 		item := quotes[index]
 		index++
 
-		_, err := stmt.Exec(collectionID, item.ID, item.Value, item.Character, item.Context)
-		return err
+		return []interface{}{collectionID, item.ID, item.Value, item.Character, item.Context}, nil
 	}
 
 	return quoteDB.Bulk(ctx, feedLine, "kaamebott", "quote", "collection_id", "id", "value", "character", "context")

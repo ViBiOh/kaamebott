@@ -2,11 +2,11 @@ package search
 
 import (
 	"context"
-	"database/sql"
 	"fmt"
 	"strings"
 
 	"github.com/ViBiOh/kaamebott/pkg/model"
+	"github.com/jackc/pgx/v4"
 )
 
 const searchQuoteQuery = `
@@ -63,10 +63,10 @@ func (a App) searchQuote(ctx context.Context, collectionID uint64, query, last s
 	var totalCount uint
 	var item model.Quote
 
-	scanner := func(row *sql.Row) error {
+	scanner := func(row pgx.Row) error {
 		err := row.Scan(&item.ID, &item.Value, &item.Character, &item.Context, &item.Collection, &totalCount)
 
-		if err == sql.ErrNoRows {
+		if err == pgx.ErrNoRows {
 			return nil
 		}
 		return err
@@ -96,10 +96,10 @@ WHERE
 func (a App) getQuote(ctx context.Context, collectionID uint64, id string) (model.Quote, error) {
 	var item model.Quote
 
-	scanner := func(row *sql.Row) error {
+	scanner := func(row pgx.Row) error {
 		err := row.Scan(&item.ID, &item.Value, &item.Character, &item.Context, &item.Collection)
 
-		if err == sql.ErrNoRows {
+		if err == pgx.ErrNoRows {
 			return nil
 		}
 		return err
@@ -136,9 +136,9 @@ LIMIT 1
 func (a App) getRandomQuote(ctx context.Context, collectionID uint64) (model.Quote, error) {
 	var item model.Quote
 
-	scanner := func(row *sql.Row) error {
+	scanner := func(row pgx.Row) error {
 		err := row.Scan(&item.ID, &item.Value, &item.Character, &item.Context, &item.Collection)
-		if err == sql.ErrNoRows {
+		if err == pgx.ErrNoRows {
 			return nil
 		}
 		return err
