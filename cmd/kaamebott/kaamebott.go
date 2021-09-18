@@ -60,11 +60,7 @@ func main() {
 
 	quoteDB, err := db.New(dbConfig)
 	logger.Fatal(err)
-	defer func() {
-		if err := quoteDB.Close(); err != nil {
-			logger.Error("error while closing database connection: %s", err)
-		}
-	}()
+	defer quoteDB.Close()
 
 	appServer := server.New(appServerConfig)
 	promServer := server.New(promServerConfig)

@@ -2,7 +2,8 @@ package search
 
 import (
 	"context"
-	"database/sql"
+
+	"github.com/jackc/pgx/v4"
 )
 
 const getCollectionQuery = `
@@ -16,9 +17,9 @@ WHERE
 
 func (a App) getCollection(ctx context.Context, name string) (uint64, error) {
 	var id uint64
-	scanner := func(row *sql.Row) error {
+	scanner := func(row pgx.Row) error {
 		err := row.Scan(&id)
-		if err == sql.ErrNoRows {
+		if err == pgx.ErrNoRows {
 			return nil
 		}
 		return err

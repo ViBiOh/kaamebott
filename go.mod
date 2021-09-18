@@ -2,7 +2,10 @@ module github.com/ViBiOh/kaamebott
 
 go 1.17
 
-require github.com/ViBiOh/httputils/v4 v4.24.0
+require (
+	github.com/ViBiOh/httputils/v4 v4.24.1
+	github.com/jackc/pgx/v4 v4.13.0
+)
 
 require (
 	github.com/beorn7/perks v1.0.1 // indirect
@@ -15,9 +18,7 @@ require (
 	github.com/jackc/pgproto3/v2 v2.1.1 // indirect
 	github.com/jackc/pgservicefile v0.0.0-20200714003250-2b9c44734f2b // indirect
 	github.com/jackc/pgtype v1.8.1 // indirect
-	github.com/jackc/pgx/v4 v4.13.0 // indirect
 	github.com/jackc/puddle v1.1.3 // indirect
-	github.com/lib/pq v1.10.3 // indirect
 	github.com/matttproud/golang_protobuf_extensions v1.0.1 // indirect
 	github.com/prometheus/client_golang v1.11.0 // indirect
 	github.com/prometheus/client_model v0.2.0 // indirect
