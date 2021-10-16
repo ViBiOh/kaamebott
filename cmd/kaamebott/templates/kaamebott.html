@@ -23,12 +23,18 @@
 {{ end }}
 
 {{ define "app" }}
+  <style type="text/css" nonce="{{ .nonce }}">
+    .screenshot {
+      max-width: 100%;
+    }
+  </style>
+
   <h2 class="center">
     Kaamebott adds a command in your Slack or Discord for finding an accurate quote from the Kaamelott world.
   </h2 class="center">
 
   <p class="center">
-    <img src="/images/slack_screenshot.png" style="max-width: 100%;" alt="Slack"></img>
+    <img src="/images/slack_screenshot.png" class="screenshot" alt="Slack"></img>
 
     <br />
 
@@ -38,7 +44,7 @@
   </p>
 
   <p class="center">
-    <img src="/images/discord_screenshot.png" style="max-width: 100%;" alt="Discord"></img>
+    <img src="/images/discord_screenshot.png" class="screenshot" alt="Discord"></img>
 
     <br />
 
