@@ -53,7 +53,7 @@ Usage of kaamebott:
   -corsOrigin string
         [cors] Access-Control-Allow-Origin {KAAMEBOTT_CORS_ORIGIN} (default "*")
   -csp string
-        [owasp] Content-Security-Policy {KAAMEBOTT_CSP} (default "default-src 'self'; base-uri 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' platform.slack-edge.com")
+        [owasp] Content-Security-Policy {KAAMEBOTT_CSP} (default "default-src 'self'; base-uri 'self'; script-src 'self' 'nonce'; style-src 'self' 'nonce'; img-src 'self' platform.slack-edge.com")
   -dbHost string
         [db] Host {KAAMEBOTT_DB_HOST}
   -dbMaxConn uint

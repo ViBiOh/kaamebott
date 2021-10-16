@@ -1,5 +1,5 @@
 {{ define "main-style" }}
-  <style>
+  <style type="text/css" nonce="{{ .nonce }}">
     :root {
       --primary: cornflowerblue;
       --success: limegreen;
@@ -237,7 +237,7 @@
 {{ end }}
 
 {{ define "main-script" }}
-  <script>
+  <script type="text/javascript" nonce="{{ .nonce }}">
     /**
     * Go back from state.
     */
@@ -260,6 +260,15 @@
           break;
       }
     };
+
+    const link = document.getElementById("go-back");
+    if (link) {
+      link.setAttribute("href", document.referrer);
+      link.addEventListener("click", () => {
+        history.back();
+        return false;
+      });
+    }
   </script>
 {{ end }}
 
@@ -276,8 +285,6 @@
 
       {{ template "main-style" . }}
       {{ template "main-script" . }}
-
-      {{ template "head" . }}
     </head>
 
     <body class="no-margin">
@@ -314,34 +321,7 @@
   {{ template "header" . }}
 
   {{ template "message" .Message }}
-
-  <h2 class="center">
-    Kaamebott adds a command in your Slack or Discord for finding an accurate quote from the Kaamelott world.
-  </h2 class="center">
-
-  <p class="center">
-    <img src="/images/slack_screenshot.png" style="max-width: 100%;" alt="Slack"></img>
-
-    <br />
-
-    <a href="https://slack.com/oauth/v2/authorize?client_id=2426300949335.2438012684245&scope=commands&user_scope=">
-      <img alt="Add to Slack" height="40" src="https://platform.slack-edge.com/img/add_to_slack.png" srcSet="https://platform.slack-edge.com/img/add_to_slack.png 1x, https://platform.slack-edge.com/img/add_to_slack@2x.png 2x" />
-    </a>
-  </p>
-
-  <p class="center">
-    <img src="/images/discord_screenshot.png" style="max-width: 100%;" alt="Discord"></img>
-
-    <br />
-
-    <a href="https://discord.com/api/oauth2/authorize?client_id=882376778943971349&redirect_uri=https%3A%2F%2Fkaamebott.vibioh.fr%2Fdiscord%2Foauth&scope=applications.commands">
-      <img alt="Add to Discord" height="40" src="/images/discord.png" />
-    </a>
-  </center>
-
-  <p class="center margin">
-    We don't log anything, don't store any token, we just add a fun command in your workspace. Full code source is available <a href="https://github.com/ViBiOh/kaamebott" rel="noreferrer noopener">on GitHub</a>.
-  </p>
+  {{ template "app" . }}
 
   {{ template "footer" . }}
 {{ end }}
@@ -359,7 +339,7 @@
   {{ end }}
 
   <h3 class="center">
-    <a href="javascript:history.back()">Go Back</a>
+    <a id="go-back" href="#">Go Back</a>
   </h3>
 
   {{ template "footer" . }}
