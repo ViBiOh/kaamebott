@@ -26,9 +26,7 @@ const (
 	queryParam = "recherche"
 )
 
-var (
-	discordRequest = request.New().URL("https://discord.com/api/v8")
-)
+var discordRequest = request.New().URL("https://discord.com/api/v8")
 
 // App of package
 type App struct {

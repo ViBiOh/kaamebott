@@ -58,7 +58,7 @@ func main() {
 }
 
 func readQuotes(filename string) ([]model.Quote, string, error) {
-	file, err := os.OpenFile(filename, os.O_RDONLY, 0600)
+	file, err := os.OpenFile(filename, os.O_RDONLY, 0o600)
 	if err != nil {
 		return nil, "", fmt.Errorf("unable to open file: %s", err)
 	}

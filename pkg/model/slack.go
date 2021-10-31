@@ -1,9 +1,7 @@
 package model
 
-var (
-	// EmptySection for not found
-	EmptySection = Section{}
-)
+// EmptySection for not found
+var EmptySection = Section{}
 
 // Block response for slack
 type Block interface{}

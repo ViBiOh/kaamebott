@@ -16,9 +16,7 @@ const (
 	sendValue   = "send"
 )
 
-var (
-	cancelButton = model.NewButtonElement("Annuler", cancelValue, "", "danger")
-)
+var cancelButton = model.NewButtonElement("Annuler", cancelValue, "", "danger")
 
 func (a App) getQuote(ctx context.Context, index, text string, last string) (model.Quote, error) {
 	quote, err := a.searchApp.Search(ctx, index, text, last)
