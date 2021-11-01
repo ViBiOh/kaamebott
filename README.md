@@ -8,7 +8,7 @@
 
 ## Thanks
 
-Thanks to [@2ec0b4](https://github.com/2ec0b4/kaamelott-soundboard) for the awesome compilation job
+Thanks to [@2ec0b4](https://github.com/2ec0b4/kaamelott-soundboard) for the awesome compilation job.
 
 ## Getting started
 
