@@ -58,17 +58,23 @@ func main() {
 }
 
 func readQuotes(filename string) ([]model.Quote, string, error) {
-	file, err := os.OpenFile(filename, os.O_RDONLY, 0o600)
+	reader, err := os.OpenFile(filename, os.O_RDONLY, 0o600)
 	if err != nil {
 		return nil, "", fmt.Errorf("unable to open file: %s", err)
 	}
 
+	defer func() {
+		if closeErr := reader.Close(); closeErr != nil {
+			logger.WithField("fn", "indexer.readQuotes").WithField("item", filename).Error("unable to close: %s", closeErr)
+		}
+	}()
+
 	var quotes []model.Quote
-	if err := json.NewDecoder(file).Decode(&quotes); err != nil {
+	if err := json.NewDecoder(reader).Decode(&quotes); err != nil {
 		return nil, "", fmt.Errorf("unable to load quotes: %s", err)
 	}
 
-	return quotes, path.Base(strings.TrimSuffix(file.Name(), ".json")), nil
+	return quotes, path.Base(strings.TrimSuffix(reader.Name(), ".json")), nil
 }
 
 func getOrCreateCollection(ctx context.Context, quoteDB db.App, name string) (uint64, error) {
