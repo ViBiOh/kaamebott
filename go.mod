@@ -3,7 +3,7 @@ module github.com/ViBiOh/kaamebott
 go 1.17
 
 require (
-	github.com/ViBiOh/httputils/v4 v4.31.0
+	github.com/ViBiOh/httputils/v4 v4.31.2
 	github.com/jackc/pgx/v4 v4.14.1
 )
 
