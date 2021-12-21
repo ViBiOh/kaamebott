@@ -23,7 +23,8 @@ import (
 )
 
 const (
-	queryParam = "recherche"
+	queryParam       = "recherche"
+	contentSeparator = "@"
 )
 
 var discordRequest = request.New().URL("https://discord.com/api/v8")
@@ -131,101 +132,136 @@ func (a App) checkSignature(r *http.Request) bool {
 }
 
 func (a App) handleWebhook(w http.ResponseWriter, r *http.Request) {
-	var webhookMessage webhook
-	if err := httpjson.Parse(r, &webhookMessage); err != nil {
+	var message interactionRequest
+	if err := httpjson.Parse(r, &message); err != nil {
 		httperror.BadRequest(w, err)
 		return
 	}
 
-	if webhookMessage.Type == 1 {
-		httpjson.Write(w, http.StatusOK, webhook{Type: 1})
+	if message.Type == pingInteraction {
+		httpjson.Write(w, http.StatusOK, interactionResponse{Type: pongCallback})
 		return
 	}
 
-	a.handleQuote(w, r, webhookMessage)
+	a.handleQuote(w, r, message)
 }
 
-func (a App) handleQuote(w http.ResponseWriter, r *http.Request, webhookMessage webhook) {
-	index, queryValue, err := a.parseQuoteRequest(webhookMessage)
+func (a App) handleQuote(w http.ResponseWriter, r *http.Request, webhook interactionRequest) {
+	index, err := a.checkRequest(webhook)
 	if err != nil {
-		httpjson.Write(w, http.StatusOK, errorResponse(err))
+		respond(w, newEphemeral(false, err.Error()))
 		return
 	}
 
-	quote, recherche, err := a.findQuote(r.Context(), index, queryValue)
-	if err != nil {
-		httperror.InternalServerError(w, err)
-		return
-	}
+	queryValue := a.getQuery(webhook)
+	switch strings.Count(queryValue, contentSeparator) {
+	case 0:
+		respond(w, a.handleSearch(r.Context(), index, queryValue, ""))
 
-	if len(quote.ID) == 0 {
-		logger.WithField("command", webhookMessage.Data.Name).WithField("query", queryValue).Warn("No quote found")
-		httpjson.Write(w, http.StatusOK, errorResponse(fmt.Errorf("On n'a rien trouvé pour `%s`", queryValue)))
-		return
-	}
+	case 1:
+		var last string
+		lastIndex := strings.LastIndexAny(queryValue, contentSeparator)
+		last = queryValue[lastIndex+1:]
+		queryValue = queryValue[:lastIndex]
+		respond(w, a.handleSearch(r.Context(), index, queryValue, last))
 
-	httpjson.Write(w, http.StatusOK, a.quoteResponse(quote, recherche))
-}
-
-func (a App) parseQuoteRequest(webhookMessage webhook) (string, string, error) {
-	index, ok := indexes[webhookMessage.Data.Name]
-	if !ok {
-		return "", "", fmt.Errorf("unknown command `%s`", webhookMessage.Data.Name)
-	}
-
-	queryValue := ""
-	for _, option := range webhookMessage.Data.Options {
-		if strings.EqualFold(option.Name, queryParam) {
-			queryValue = strings.TrimSpace(option.Value)
-			break
-		}
-	}
-
-	return index, queryValue, nil
-}
-
-func (a App) findQuote(ctx context.Context, index, query string) (model.Quote, string, error) {
-	recherche := fmt.Sprintf(`"%s"`, query)
-
-	quote, err := a.searchApp.Search(ctx, index, query, "")
-	if err != nil && err != search.ErrNotFound {
-		return model.Quote{}, recherche, fmt.Errorf("unable to search quote: %s", err)
-	}
-
-	if len(quote.ID) == 0 {
-		recherche += " ➡️ aléatoire"
-		quote, err = a.searchApp.Random(ctx, index)
+	case 2:
+		quote, err := a.searchApp.GetByID(r.Context(), index, strings.Trim(queryValue, contentSeparator))
 		if err != nil {
-			return model.Quote{}, recherche, fmt.Errorf("unable to get random quote: %s", err)
+			respond(w, newEphemeral(true, err.Error()))
+			return
+		}
+
+		respond(w, a.quoteResponse(webhook.Member.User.ID, quote))
+
+	case 3:
+		respond(w, newEphemeral(true, "Ok, pas maintenant."))
+	}
+}
+
+func (a App) checkRequest(message interactionRequest) (string, error) {
+	index, ok := indexes[message.Data.Name]
+	if !ok {
+		return "", fmt.Errorf("unknown command `%s`", message.Data.Name)
+	}
+
+	return index, nil
+}
+
+func (a App) getQuery(message interactionRequest) string {
+	switch message.Type {
+	case messageComponentInteraction:
+		return message.Data.CustomID
+	case applicationCommandInteraction:
+		for _, option := range message.Data.Options {
+			if strings.EqualFold(option.Name, queryParam) {
+				return option.Value
+			}
 		}
 	}
 
-	return quote, recherche, err
+	return ""
 }
 
-func (a App) quoteResponse(quote model.Quote, recherche string) webhook {
-	output := webhook{
-		Type: 4, // https://discord.com/developers/docs/interactions/slash-commands#interaction-response-interactionresponsetype
+func (a App) handleSearch(ctx context.Context, index, query, last string) interactionResponse {
+	quote, err := a.searchApp.Search(ctx, index, query, last)
+	if err != nil && !errors.Is(err, search.ErrNotFound) {
+		return newEphemeral(len(last) != 0, fmt.Sprintf("Ah, c'est cassé 😱. La raison : %s", err))
 	}
 
-	switch quote.Collection {
-	case kaamelottIndexName:
-		output.Data.Embeds = []embed{a.getKaamelottEmbeds(quote)}
-	default:
-		return errorResponse(errors.New("unable to render quote for a human"))
+	if len(quote.ID) == 0 {
+		return newEphemeral(len(last) != 0, fmt.Sprintf("On n'a rien trouvé pour `%s`", query))
 	}
 
-	output.Data.Embeds[0].Fields = append(output.Data.Embeds[0].Fields, newField("Recherche", recherche))
-
-	return output
+	return a.interactiveResponse(quote, len(last) != 0, query)
 }
 
-func errorResponse(err error) webhook {
-	return webhook{
-		Type: 4, // https://discord.com/developers/docs/interactions/slash-commands#interaction-response-interactionresponsetype
-		Data: data{
-			Content: err.Error(),
-			Flags:   64,
+func (a App) interactiveResponse(quote model.Quote, replace bool, recherche string) interactionResponse {
+	webhookType := channelMessageWithSourceCallback
+	if replace {
+		webhookType = updateMessageCallback
+	}
+
+	instance := interactionResponse{Type: webhookType}
+	instance.Data.Flags = ephemeralMessage
+	instance.Data.Embeds = []embed{a.getQuoteEmbed(quote)}
+	instance.Data.Components = []component{
+		{
+			Type: actionRowType,
+			Components: []component{
+				newButton(primaryButton, "Envoyer", fmt.Sprintf("%s%s%s", contentSeparator, quote.ID, contentSeparator)),
+				newButton(secondaryButton, "Une autre ?", fmt.Sprintf("%s%s%s", recherche, contentSeparator, quote.ID)),
+				newButton(dangerButton, "Annuler", fmt.Sprintf("%s%s%s", contentSeparator, contentSeparator, contentSeparator)),
+			},
 		},
 	}
+
+	return instance
+}
+
+func (a App) quoteResponse(user string, quote model.Quote) interactionResponse {
+	instance := interactionResponse{Type: channelMessageWithSourceCallback}
+	instance.Data.Content = fmt.Sprintf("<@!%s> vous partage une petite quote", user)
+	instance.Data.AllowedMentions = allowedMention{
+		Parse: []string{},
+	}
+	instance.Data.Embeds = []embed{a.getQuoteEmbed(quote)}
+
+	return instance
+}
+
+func (a App) getQuoteEmbed(quote model.Quote) embed {
+	switch quote.Collection {
+	case kaamelottIndexName:
+		return a.getKaamelottEmbeds(quote)
+	default:
+		return embed{
+			Title:       "Error",
+			Description: fmt.Sprintf("unable to render quote of collection `%s`", quote.Collection),
+		}
+	}
+}
+
+func respond(w http.ResponseWriter, response interactionResponse) {
+	httpjson.Write(w, http.StatusOK, response)
 }
