@@ -179,21 +179,29 @@ func (a App) handleQuote(w http.ResponseWriter, r *http.Request, webhook interac
 	}
 }
 
-func (a App) checkRequest(message interactionRequest) (string, error) {
-	index, ok := indexes[message.Data.Name]
+func (a App) checkRequest(webhook interactionRequest) (string, error) {
+	var index string
+	switch webhook.Type {
+	case messageComponentInteraction:
+		index = webhook.Message.Interaction.Name
+	case applicationCommandInteraction:
+		index = webhook.Data.Name
+	}
+
+	index, ok := indexes[index]
 	if !ok {
-		return "", fmt.Errorf("unknown command `%s`", message.Data.Name)
+		return "", fmt.Errorf("unknown command `%s`", index)
 	}
 
 	return index, nil
 }
 
-func (a App) getQuery(message interactionRequest) string {
-	switch message.Type {
+func (a App) getQuery(webhook interactionRequest) string {
+	switch webhook.Type {
 	case messageComponentInteraction:
-		return message.Data.CustomID
+		return webhook.Data.CustomID
 	case applicationCommandInteraction:
-		for _, option := range message.Data.Options {
+		for _, option := range webhook.Data.Options {
 			if strings.EqualFold(option.Name, queryParam) {
 				return option.Value
 			}

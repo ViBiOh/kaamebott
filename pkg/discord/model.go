@@ -46,6 +46,11 @@ type interactionRequest struct {
 		CustomID string          `json:"custom_id"`
 		Options  []commandOption `json:"options"`
 	} `json:"data"`
+	Message struct {
+		Interaction struct {
+			Name string `json:"name"`
+		} `json:"interaction"`
+	} `json:"message"`
 	Type interactionType `json:"type"`
 }
 
