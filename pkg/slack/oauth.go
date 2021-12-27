@@ -26,7 +26,7 @@ func (a App) handleOauth(w http.ResponseWriter, r *http.Request) {
 	params.Set("client_id", a.clientID)
 	params.Set("client_secret", a.clientSecret)
 
-	resp, err := request.New().Post(slackOauthURL).Form(r.Context(), params)
+	resp, err := request.Post(slackOauthURL).Form(r.Context(), params)
 	if err != nil {
 		httperror.InternalServerError(w, fmt.Errorf("unable to confirm oauth request: %s", err))
 		return

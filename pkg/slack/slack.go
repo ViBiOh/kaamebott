@@ -167,7 +167,7 @@ func (a App) handleInteract(w http.ResponseWriter, r *http.Request) {
 }
 
 func (a App) send(url string, message model.Response) {
-	_, err := request.New().Post(url).JSON(context.Background(), message)
+	_, err := request.Post(url).JSON(context.Background(), message)
 	if err != nil {
 		logger.Error("unable to send response: %s", err)
 	}
