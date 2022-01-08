@@ -3,7 +3,7 @@ module github.com/ViBiOh/kaamebott
 go 1.17
 
 require (
-	github.com/ViBiOh/httputils/v4 v4.34.1
+	github.com/ViBiOh/httputils/v4 v4.34.2
 	github.com/jackc/pgx/v4 v4.14.1
 )
 
@@ -24,7 +24,7 @@ require (
 	github.com/prometheus/client_model v0.2.0 // indirect
 	github.com/prometheus/common v0.32.1 // indirect
 	github.com/prometheus/procfs v0.7.3 // indirect
-	github.com/tdewolff/minify/v2 v2.9.26 // indirect
+	github.com/tdewolff/minify/v2 v2.9.27 // indirect
 	github.com/tdewolff/parse/v2 v2.5.26 // indirect
 	golang.org/x/crypto v0.0.0-20211108221036-ceb1ce70b4fa // indirect
 	golang.org/x/sys v0.0.0-20211113001501-0c823b97ae02 // indirect
