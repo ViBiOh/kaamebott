@@ -12,7 +12,7 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/ViBiOh/httputils/v4/pkg/flags"
+	"github.com/ViBiOh/flags"
 	"github.com/ViBiOh/httputils/v4/pkg/httperror"
 	"github.com/ViBiOh/httputils/v4/pkg/httpjson"
 	"github.com/ViBiOh/httputils/v4/pkg/logger"

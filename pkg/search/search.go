@@ -10,8 +10,8 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/ViBiOh/flags"
 	"github.com/ViBiOh/httputils/v4/pkg/db"
-	"github.com/ViBiOh/httputils/v4/pkg/flags"
 	"github.com/ViBiOh/httputils/v4/pkg/logger"
 	"github.com/ViBiOh/httputils/v4/pkg/renderer"
 	"github.com/ViBiOh/kaamebott/pkg/model"
