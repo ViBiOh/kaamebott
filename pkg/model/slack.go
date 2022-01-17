@@ -47,15 +47,6 @@ func NewAccessory(image, alt string) *Accessory {
 	}
 }
 
-// NewImage creates Accessory
-func NewImage(image, alt string) Block {
-	return Accessory{
-		Type:  "image",
-		Image: image,
-		Alt:   alt,
-	}
-}
-
 // ButtonElement response for slack
 type ButtonElement struct {
 	Type     string `json:"type"`
