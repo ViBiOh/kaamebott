@@ -4,6 +4,7 @@ import (
 	"embed"
 	"flag"
 	"net/http"
+	"net/url"
 	"os"
 	"strings"
 
@@ -12,6 +13,7 @@ import (
 	"github.com/ViBiOh/httputils/v4/pkg/cors"
 	"github.com/ViBiOh/httputils/v4/pkg/db"
 	"github.com/ViBiOh/httputils/v4/pkg/health"
+	"github.com/ViBiOh/httputils/v4/pkg/httperror"
 	"github.com/ViBiOh/httputils/v4/pkg/httputils"
 	"github.com/ViBiOh/httputils/v4/pkg/logger"
 	"github.com/ViBiOh/httputils/v4/pkg/owasp"
@@ -77,7 +79,10 @@ func main() {
 
 	slackHandler := http.StripPrefix(slackPrefix, slack.New(slackConfig, searchApp).Handler())
 	discordHandler := http.StripPrefix(discordPrefix, discordApp.Handler())
-	rendererHandler := rendererApp.Handler(searchApp.TemplateFunc)
+	kaamebottHandler := rendererApp.Handler(searchApp.TemplateFunc)
+
+	kaamebottURL, err := url.Parse(rendererApp.PublicURL(""))
+	logger.Fatal(err)
 
 	appHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if strings.HasPrefix(r.URL.Path, slackPrefix) {
@@ -85,7 +90,12 @@ func main() {
 		} else if strings.HasPrefix(r.URL.Path, discordPrefix) {
 			discordHandler.ServeHTTP(w, r)
 		} else {
-			rendererHandler.ServeHTTP(w, r)
+			switch r.Host {
+			case kaamebottURL.Host:
+				kaamebottHandler.ServeHTTP(w, r)
+			default:
+				httperror.NotFound(w)
+			}
 		}
 	})
 
