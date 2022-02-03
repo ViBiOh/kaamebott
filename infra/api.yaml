@@ -44,13 +44,3 @@ spec:
       enabled: true
       hosts:
         - kaamebott.vibioh.fr
-    affinity:
-      podAffinity:
-        requiredDuringSchedulingIgnoredDuringExecution:
-          - labelSelector:
-              matchExpressions:
-                - key: app.kubernetes.io/instance
-                  operator: In
-                  values:
-                    - kaamebott-db
-            topologyKey: "kubernetes.io/hostname"
