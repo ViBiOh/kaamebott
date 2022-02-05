@@ -25,9 +25,9 @@ spec:
     nameOverride: kaamebott-discord
     image:
       name: vibioh/kaamebott
-      tag: "202201290642" # {"$imagepolicy": "default:flux-kaamebott-api:tag"}
+      tag: "202202050916" # {"$imagepolicy": "default:flux-kaamebott-api:tag"}
     command:
-      - /discord
+    - /discord
     config:
       DISCORD_APPLICATION_ID: "882376778943971349"
       DISCORD_PUBLIC_KEY: d3acdcf3d7dc08c1d32714b3a51b0db4e40041059e075b274d94326011c20a31
