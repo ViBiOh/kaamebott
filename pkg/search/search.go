@@ -112,6 +112,6 @@ func (a App) Random(ctx context.Context, collection string) (model.Quote, error)
 }
 
 // TemplateFunc used for rendering GUI
-func (a App) TemplateFunc(w http.ResponseWriter, r *http.Request) (string, int, map[string]interface{}, error) {
-	return "public", http.StatusOK, nil, nil
+func (a App) TemplateFunc(w http.ResponseWriter, r *http.Request) (renderer.Page, error) {
+	return renderer.NewPage("public", http.StatusOK, nil), nil
 }
