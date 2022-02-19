@@ -12,6 +12,7 @@ import (
 
 	"github.com/ViBiOh/httputils/v4/pkg/db"
 	"github.com/ViBiOh/httputils/v4/pkg/logger"
+	"github.com/ViBiOh/httputils/v4/pkg/tracer"
 	"github.com/ViBiOh/kaamebott/pkg/model"
 	"github.com/jackc/pgx/v4"
 )
@@ -24,7 +25,7 @@ func main() {
 
 	logger.Fatal(fs.Parse(os.Args[1:]))
 
-	quoteDB, err := db.New(dbConfig)
+	quoteDB, err := db.New(dbConfig, tracer.App{})
 	logger.Fatal(err)
 	defer quoteDB.Close()
 
