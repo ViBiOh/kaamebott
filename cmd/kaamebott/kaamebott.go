@@ -18,7 +18,9 @@ import (
 	"github.com/ViBiOh/httputils/v4/pkg/prometheus"
 	"github.com/ViBiOh/httputils/v4/pkg/recoverer"
 	"github.com/ViBiOh/httputils/v4/pkg/renderer"
+	"github.com/ViBiOh/httputils/v4/pkg/request"
 	"github.com/ViBiOh/httputils/v4/pkg/server"
+	"github.com/ViBiOh/httputils/v4/pkg/tracer"
 	"github.com/ViBiOh/kaamebott/pkg/discord"
 	"github.com/ViBiOh/kaamebott/pkg/search"
 	"github.com/ViBiOh/kaamebott/pkg/slack"
@@ -41,6 +43,7 @@ func main() {
 
 	alcotestConfig := alcotest.Flags(fs, "")
 	loggerConfig := logger.Flags(fs, "logger")
+	tracerConfig := tracer.Flags(fs, "tracer")
 	prometheusConfig := prometheus.Flags(fs, "prometheus", flags.NewOverride("Gzip", false))
 	owaspConfig := owasp.Flags(fs, "", flags.NewOverride("Csp", "default-src 'self'; base-uri 'self'; script-src 'self' 'httputils-nonce'; style-src 'self' 'httputils-nonce'; img-src 'self' platform.slack-edge.com"))
 	corsConfig := cors.Flags(fs, "cors")
@@ -58,7 +61,12 @@ func main() {
 	logger.Global(logger.New(loggerConfig))
 	defer logger.Close()
 
-	quoteDB, err := db.New(dbConfig)
+	tracerApp, err := tracer.New(tracerConfig)
+	logger.Fatal(err)
+	defer tracerApp.Close()
+	request.AddTracerToDefaultClient(tracerApp.GetProvider())
+
+	quoteDB, err := db.New(dbConfig, tracerApp)
 	logger.Fatal(err)
 	defer quoteDB.Close()
 
@@ -67,7 +75,7 @@ func main() {
 	prometheusApp := prometheus.New(prometheusConfig)
 	healthApp := health.New(healthConfig, quoteDB.Ping)
 
-	rendererApp, err := renderer.New(rendererConfig, content, search.FuncMap)
+	rendererApp, err := renderer.New(rendererConfig, content, search.FuncMap, tracerApp)
 	logger.Fatal(err)
 
 	searchApp := search.New(searchConfig, quoteDB, rendererApp)
@@ -90,7 +98,7 @@ func main() {
 	})
 
 	go promServer.Start("prometheus", healthApp.End(), prometheusApp.Handler())
-	go appServer.Start("http", healthApp.End(), httputils.Handler(appHandler, healthApp, recoverer.Middleware, prometheusApp.Middleware, owasp.New(owaspConfig).Middleware, cors.New(corsConfig).Middleware))
+	go appServer.Start("http", healthApp.End(), httputils.Handler(appHandler, healthApp, recoverer.Middleware, prometheusApp.Middleware, tracerApp.Middleware, owasp.New(owaspConfig).Middleware, cors.New(corsConfig).Middleware))
 
 	healthApp.WaitForTermination(appServer.Done())
 	server.GracefulWait(appServer.Done(), promServer.Done())

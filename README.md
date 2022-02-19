@@ -146,6 +146,10 @@ Usage of kaamebott:
         [slack] URL of public website {KAAMEBOTT_SLACK_WEBSITE} (default "https://kaamebott.vibioh.fr")
   -title string
         Application title {KAAMEBOTT_TITLE} (default "Kaamebott")
+  -tracerRate string
+        [tracer] Jaeger sample rate, 'always', 'never' or a float value {KAAMEBOTT_TRACER_RATE} (default "always")
+  -tracerURL string
+        [tracer] Jaeger endpoint URL (e.g. http://jaeger:14268/api/traces) {KAAMEBOTT_TRACER_URL}
   -url string
         [alcotest] URL to check {KAAMEBOTT_URL}
   -userAgent string
