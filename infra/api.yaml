@@ -24,7 +24,7 @@ spec:
     nameOverride: kaamebott
     image:
       name: vibioh/kaamebott
-      tag: "202202121430" # {"$imagepolicy": "default:flux-kaamebott-api:tag"}
+      tag: "202202191023" # {"$imagepolicy": "default:flux-kaamebott-api:tag"}
     config:
       KAAMEBOTT_DB_HOST: kaamebott-db
       KAAMEBOTT_DB_NAME: kaamebott
@@ -45,16 +45,16 @@ spec:
     ingress:
       enabled: true
       hosts:
-        - kaamebott.vibioh.fr
+      - kaamebott.vibioh.fr
     affinity:
       podAffinity:
         preferredDuringSchedulingIgnoredDuringExecution:
-          - weight: 100
-            podAffinityTerm:
-              labelSelector:
-                matchExpressions:
-                  - key: app.kubernetes.io/instance
-                    operator: In
-                    values:
-                      - kaamebott-db
-              topologyKey: "kubernetes.io/hostname"
+        - weight: 100
+          podAffinityTerm:
+            labelSelector:
+              matchExpressions:
+              - key: app.kubernetes.io/instance
+                operator: In
+                values:
+                - kaamebott-db
+            topologyKey: "kubernetes.io/hostname"
