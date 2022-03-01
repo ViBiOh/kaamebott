@@ -248,7 +248,7 @@ func (a App) interactiveResponse(quote model.Quote, replace bool, recherche stri
 }
 
 func (a App) quoteResponse(user string, quote model.Quote) interactionResponse {
-	instance := interactionResponse{Type: channelMessageWithSourceCallback}
+	instance := interactionResponse{Type: updateMessageCallback}
 	instance.Data.Content = fmt.Sprintf("<@!%s> vous partage une petite quote", user)
 	instance.Data.AllowedMentions = allowedMention{
 		Parse: []string{},
