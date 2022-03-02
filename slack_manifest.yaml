@@ -14,6 +14,7 @@ features:
     - command: /kaamelott
       url: https://kaamebott.vibioh.fr/slack/kaamelott
       description: Get a kaamelott quote
+      usage_hint: "[searched text]"
       should_escape: false
 oauth_config:
   redirect_urls:
