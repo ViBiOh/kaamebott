@@ -31,11 +31,11 @@ ORDER BY
 LIMIT 1
 `
 
-func computeQuoteQuery(collectionID uint64, last string, words []string) (string, []interface{}) {
+func computeQuoteQuery(collectionID uint64, last string, words []string) (string, []any) {
 	query := strings.Builder{}
 	query.WriteString(searchQuoteQuery)
 
-	args := []interface{}{
+	args := []any{
 		collectionID,
 	}
 

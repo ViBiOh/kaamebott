@@ -106,7 +106,7 @@ func getOrCreateCollection(ctx context.Context, quoteDB db.App, name string) (ui
 func insertQuotes(ctx context.Context, quoteDB db.App, collectionID uint64, quotes []model.Quote) error {
 	quotesCount, index := len(quotes), 0
 
-	feedLine := func() ([]interface{}, error) {
+	feedLine := func() ([]any, error) {
 		if quotesCount == index {
 			return nil, nil
 		}
@@ -114,7 +114,7 @@ func insertQuotes(ctx context.Context, quoteDB db.App, collectionID uint64, quot
 		item := quotes[index]
 		index++
 
-		return []interface{}{collectionID, item.ID, item.Value, item.Character, item.Context}, nil
+		return []any{collectionID, item.ID, item.Value, item.Character, item.Context}, nil
 	}
 
 	return quoteDB.Bulk(ctx, feedLine, "kaamebott", "quote", "collection_id", "id", "value", "character", "context")

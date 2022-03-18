@@ -4,10 +4,10 @@ package model
 var EmptySection = Section{}
 
 // Block response for slack
-type Block interface{}
+type Block any
 
 // Element response for slack
-type Element interface{}
+type Element any
 
 // Text Slack's model
 type Text struct {

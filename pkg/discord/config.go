@@ -48,7 +48,7 @@ func (a App) Start() error {
 		return fmt.Errorf("unable to get token: %s", err)
 	}
 
-	content := make(map[string]interface{})
+	content := make(map[string]any)
 	if err := httpjson.Read(resp, &content); err != nil {
 		return fmt.Errorf("unable to read oauth token: %s", err)
 	}
