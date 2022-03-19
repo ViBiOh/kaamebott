@@ -3,8 +3,8 @@ module github.com/ViBiOh/kaamebott
 go 1.18
 
 require (
-	github.com/ViBiOh/flags v0.0.1
-	github.com/ViBiOh/httputils/v4 v4.37.2
+	github.com/ViBiOh/flags v0.1.0
+	github.com/ViBiOh/httputils/v4 v4.38.1
 	github.com/jackc/pgx/v4 v4.15.0
 )
 
@@ -31,12 +31,12 @@ require (
 	github.com/tdewolff/minify/v2 v2.10.0 // indirect
 	github.com/tdewolff/parse/v2 v2.5.27 // indirect
 	go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.29.0 // indirect
-	go.opentelemetry.io/otel v1.4.1 // indirect
-	go.opentelemetry.io/otel/exporters/jaeger v1.4.1 // indirect
+	go.opentelemetry.io/otel v1.5.0 // indirect
+	go.opentelemetry.io/otel/exporters/jaeger v1.5.0 // indirect
 	go.opentelemetry.io/otel/internal/metric v0.27.0 // indirect
 	go.opentelemetry.io/otel/metric v0.27.0 // indirect
-	go.opentelemetry.io/otel/sdk v1.4.1 // indirect
-	go.opentelemetry.io/otel/trace v1.4.1 // indirect
+	go.opentelemetry.io/otel/sdk v1.5.0 // indirect
+	go.opentelemetry.io/otel/trace v1.5.0 // indirect
 	golang.org/x/crypto v0.0.0-20220307211146-efcb8507fb70 // indirect
 	golang.org/x/sys v0.0.0-20220310020820-b874c991c1a5 // indirect
 	golang.org/x/text v0.3.7 // indirect
