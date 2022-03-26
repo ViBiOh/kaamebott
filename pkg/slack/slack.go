@@ -49,10 +49,10 @@ type App struct {
 // Flags adds flags for configuring package
 func Flags(fs *flag.FlagSet, prefix string) Config {
 	return Config{
-		clientID:      flags.New(prefix, "slack", "ClientID").Default("", nil).Label("ClientID").ToString(fs),
-		clientSecret:  flags.New(prefix, "slack", "ClientSecret").Default("", nil).Label("ClientSecret").ToString(fs),
-		signingSecret: flags.New(prefix, "slack", "SigningSecret").Default("", nil).Label("Signing secret").ToString(fs),
-		website:       flags.New(prefix, "slack", "Website").Default("https://kaamebott.vibioh.fr", nil).Label("URL of public website").ToString(fs),
+		clientID:      flags.String(fs, prefix, "slack", "ClientID", "ClientID", "", nil),
+		clientSecret:  flags.String(fs, prefix, "slack", "ClientSecret", "ClientSecret", "", nil),
+		signingSecret: flags.String(fs, prefix, "slack", "SigningSecret", "Signing secret", "", nil),
+		website:       flags.String(fs, prefix, "slack", "Website", "URL of public website", "https://kaamebott.vibioh.fr", nil),
 	}
 }
 

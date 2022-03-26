@@ -52,11 +52,11 @@ type Config struct {
 // Flags adds flags for configuring package
 func Flags(fs *flag.FlagSet, prefix string, overrides ...flags.Override) Config {
 	return Config{
-		applicationID: flags.New(prefix, "discord", "ApplicationID").Default("", overrides).Label("Application ID").ToString(fs),
-		publicKey:     flags.New(prefix, "discord", "PublicKey").Default("", overrides).Label("Public Key").ToString(fs),
-		clientID:      flags.New(prefix, "discord", "ClientID").Default("", overrides).Label("Client ID").ToString(fs),
-		clientSecret:  flags.New(prefix, "discord", "ClientSecret").Default("", overrides).Label("Client Secret").ToString(fs),
-		website:       flags.New(prefix, "discord", "Website").Default("https://kaamebott.vibioh.fr", overrides).Label("URL of public website").ToString(fs),
+		applicationID: flags.String(fs, prefix, "discord", "ApplicationID", "Application ID", "", overrides),
+		publicKey:     flags.String(fs, prefix, "discord", "PublicKey", "Public Key", "", overrides),
+		clientID:      flags.String(fs, prefix, "discord", "ClientID", "Client ID", "", overrides),
+		clientSecret:  flags.String(fs, prefix, "discord", "ClientSecret", "Client Secret", "", overrides),
+		website:       flags.String(fs, prefix, "discord", "Website", "URL of public website", "https://kaamebott.vibioh.fr", overrides),
 	}
 }
 
