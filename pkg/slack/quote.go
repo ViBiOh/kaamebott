@@ -18,7 +18,7 @@ const (
 
 var cancelButton = model.NewButtonElement("Annuler", cancelValue, "", "danger")
 
-func (a App) getQuote(ctx context.Context, index, text string, last string) (model.Quote, error) {
+func (a App) getQuote(ctx context.Context, index, text, last string) (model.Quote, error) {
 	quote, err := a.searchApp.Search(ctx, index, text, last)
 	if err != nil && err == search.ErrNotFound {
 		quote, err = a.searchApp.Random(ctx, index)
@@ -30,7 +30,7 @@ func (a App) getQuote(ctx context.Context, index, text string, last string) (mod
 	return quote, err
 }
 
-func (a App) getQuoteBlock(ctx context.Context, index, text string, last string) model.Response {
+func (a App) getQuoteBlock(ctx context.Context, index, text, last string) model.Response {
 	quote, err := a.getQuote(ctx, index, text, last)
 	if err != nil {
 		return model.NewEphemeralMessage(fmt.Sprintf("Ah, c'est cassé 😱. La raison : %s", err))
