@@ -1,4 +1,4 @@
-package model
+package slack
 
 // EmptySection for not found
 var EmptySection = Section{}

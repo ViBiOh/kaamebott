@@ -21,49 +21,49 @@ import (
 	"github.com/ViBiOh/httputils/v4/pkg/httpjson"
 	"github.com/ViBiOh/httputils/v4/pkg/logger"
 	"github.com/ViBiOh/httputils/v4/pkg/request"
-	"github.com/ViBiOh/kaamebott/pkg/model"
-	"github.com/ViBiOh/kaamebott/pkg/search"
 )
 
-const (
-	commandQuote = "quote"
-)
+// CommandHandler for handling when user send a slash command
+type CommandHandler func(w http.ResponseWriter, r *http.Request, pathName, text string)
+
+// InteractHandler for handling when user interact with a button
+type InteractHandler func(r *http.Request, user string, actions []InteractiveAction) Response
 
 // Config of package
 type Config struct {
 	clientID      *string
 	clientSecret  *string
 	signingSecret *string
-	website       *string
 }
 
 // App of package
 type App struct {
-	searchApp     search.App
+	onCommand  CommandHandler
+	onInteract InteractHandler
+
 	clientID      string
 	clientSecret  string
-	website       string
 	signingSecret []byte
 }
 
 // Flags adds flags for configuring package
-func Flags(fs *flag.FlagSet, prefix string) Config {
+func Flags(fs *flag.FlagSet, prefix string, overrides ...flags.Override) Config {
 	return Config{
-		clientID:      flags.String(fs, prefix, "slack", "ClientID", "ClientID", "", nil),
-		clientSecret:  flags.String(fs, prefix, "slack", "ClientSecret", "ClientSecret", "", nil),
-		signingSecret: flags.String(fs, prefix, "slack", "SigningSecret", "Signing secret", "", nil),
-		website:       flags.String(fs, prefix, "slack", "Website", "URL of public website", "https://kaamebott.vibioh.fr", nil),
+		clientID:      flags.String(fs, prefix, "slack", "ClientID", "ClientID", "", overrides),
+		clientSecret:  flags.String(fs, prefix, "slack", "ClientSecret", "ClientSecret", "", overrides),
+		signingSecret: flags.String(fs, prefix, "slack", "SigningSecret", "Signing secret", "", overrides),
 	}
 }
 
 // New creates new App from Config
-func New(config Config, searchApp search.App) *App {
-	return &App{
+func New(config Config, command CommandHandler, interact InteractHandler) App {
+	return App{
 		clientID:      *config.clientID,
 		clientSecret:  *config.clientSecret,
 		signingSecret: []byte(*config.signingSecret),
-		website:       *config.website,
-		searchApp:     searchApp,
+
+		onCommand:  command,
+		onInteract: interact,
 	}
 }
 
@@ -88,16 +88,10 @@ func (a App) Handler() http.Handler {
 		case http.MethodPost:
 			if r.URL.Path == "/interactive" {
 				a.handleInteract(w, r)
-				return
+			} else {
+				a.onCommand(w, r, strings.TrimPrefix(r.URL.Path, "/"), r.FormValue("text"))
 			}
 
-			pathName := strings.TrimPrefix(r.URL.Path, "/")
-			if a.searchApp.HasCollection(pathName) {
-				a.handleCommand(w, r, commandQuote, pathName)
-				return
-			}
-
-			httperror.NotFound(w)
 			return
 
 		default:
@@ -141,32 +135,23 @@ func (a App) checkSignature(r *http.Request) bool {
 	return false
 }
 
-func (a App) handleCommand(w http.ResponseWriter, r *http.Request, commandName, collectionName string) {
-	switch commandName {
-	case commandQuote:
-		httpjson.Write(w, http.StatusOK, a.getQuoteBlock(r.Context(), collectionName, r.FormValue("text"), ""))
-	default:
-		a.returnEphemeral(w, "On ne comprend pas très bien ce que vous attendez de nous... 🧐")
-	}
-}
-
-func (a App) returnEphemeral(w http.ResponseWriter, message string) {
-	httpjson.Write(w, http.StatusOK, model.NewEphemeralMessage(message))
-}
-
 func (a App) handleInteract(w http.ResponseWriter, r *http.Request) {
 	rawPayload := r.FormValue("payload")
-	var payload model.Interactive
+	var payload Interactive
 
 	if err := json.Unmarshal([]byte(rawPayload), &payload); err != nil {
 		a.returnEphemeral(w, fmt.Sprintf("cannot unmarshall payload: %v", err))
 		return
 	}
 
-	a.send(payload.ResponseURL, a.handleQuoteInteract(r, payload.User.ID, payload.Actions))
+	a.send(payload.ResponseURL, a.onInteract(r, payload.User.ID, payload.Actions))
 }
 
-func (a App) send(url string, message model.Response) {
+func (a App) returnEphemeral(w http.ResponseWriter, message string) {
+	httpjson.Write(w, http.StatusOK, NewEphemeralMessage(message))
+}
+
+func (a App) send(url string, message Response) {
 	_, err := request.Post(url).JSON(context.Background(), message)
 	if err != nil {
 		logger.Error("unable to send response: %s", err)

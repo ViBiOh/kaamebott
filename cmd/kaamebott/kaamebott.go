@@ -22,6 +22,7 @@ import (
 	"github.com/ViBiOh/httputils/v4/pkg/server"
 	"github.com/ViBiOh/httputils/v4/pkg/tracer"
 	"github.com/ViBiOh/kaamebott/pkg/discord"
+	"github.com/ViBiOh/kaamebott/pkg/quote"
 	"github.com/ViBiOh/kaamebott/pkg/search"
 	"github.com/ViBiOh/kaamebott/pkg/slack"
 )
@@ -52,6 +53,7 @@ func main() {
 	searchConfig := search.Flags(fs, "search")
 	slackConfig := slack.Flags(fs, "slack")
 	discordConfig := discord.Flags(fs, "discord")
+	quoteConfig := quote.Flags(fs, "quote")
 
 	dbConfig := db.Flags(fs, "db")
 
@@ -83,7 +85,9 @@ func main() {
 	discordApp, err := discord.New(discordConfig, searchApp)
 	logger.Fatal(err)
 
-	slackHandler := http.StripPrefix(slackPrefix, slack.New(slackConfig, searchApp).Handler())
+	quoteApp := quote.New(quoteConfig, searchApp)
+
+	slackHandler := http.StripPrefix(slackPrefix, slack.New(slackConfig, quoteApp.SlackCommand, quoteApp.SlackInteract).Handler())
 	discordHandler := http.StripPrefix(discordPrefix, discordApp.Handler())
 	kaamebottHandler := rendererApp.Handler(searchApp.TemplateFunc)
 
