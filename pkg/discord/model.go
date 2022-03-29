@@ -3,48 +3,58 @@ package discord
 type interactionType uint
 
 const (
-	pingInteraction               interactionType = 1
-	applicationCommandInteraction interactionType = 2
-	messageComponentInteraction   interactionType = 3
+	pingInteraction interactionType = 1
+	// ApplicationCommandInteraction occurs when user enter a slash command
+	ApplicationCommandInteraction interactionType = 2
+	// MessageComponentInteraction occurs when user interact with an action
+	MessageComponentInteraction interactionType = 3
 )
 
 type callbackType uint
 
 const (
-	pongCallback                     callbackType = 1
-	channelMessageWithSourceCallback callbackType = 4
-	updateMessageCallback            callbackType = 7
+	pongCallback callbackType = 1
+	// ChannelMessageWithSourceCallback answer to user
+	ChannelMessageWithSourceCallback callbackType = 4
+	// UpdateMessageCallback in place
+	UpdateMessageCallback callbackType = 7
 )
 
 type componentType uint
 
 const (
-	actionRowType componentType = 1
+	// ActionRowType for row
+	ActionRowType componentType = 1
 	buttonType    componentType = 2
 )
 
 type buttonStyle uint
 
 const (
-	primaryButton   buttonStyle = 1
-	secondaryButton buttonStyle = 2
-	dangerButton    buttonStyle = 4
+	// PrimaryButton is green
+	PrimaryButton buttonStyle = 1
+	// SecondaryButton is grey
+	SecondaryButton buttonStyle = 2
+	// DangerButton is red
+	DangerButton buttonStyle = 4
 )
 
 const (
-	ephemeralMessage int = 1 << 6
+	// EphemeralMessage int value
+	EphemeralMessage int = 1 << 6
 )
 
-type interactionRequest struct {
+// InteractionRequest when user perform an action
+type InteractionRequest struct {
 	ID            string `json:"id"`
 	GuildID       string `json:"guild_id"`
-	Member        member `json:"member"`
+	Member        Member `json:"member"`
 	Token         string `json:"token"`
 	ApplicationID string `json:"application_id"`
 	Data          struct {
 		Name     string          `json:"name"`
 		CustomID string          `json:"custom_id"`
-		Options  []commandOption `json:"options"`
+		Options  []CommandOption `json:"options"`
 	} `json:"data"`
 	Message struct {
 		Interaction struct {
@@ -54,89 +64,91 @@ type interactionRequest struct {
 	Type interactionType `json:"type"`
 }
 
-type member struct {
+// Member of discord
+type Member struct {
 	User struct {
 		ID       string `json:"id,omitempty"`
 		Username string `json:"username,omitempty"`
 	} `json:"user,omitempty"`
 }
 
-type interactionResponse struct {
+// InteractionResponse for responding to user
+type InteractionResponse struct {
 	Data struct {
 		Content         string         `json:"content,omitempty"`
-		AllowedMentions allowedMention `json:"allowed_mentions"`
-		Embeds          []embed        `json:"embeds"`
-		Components      []component    `json:"components"`
+		AllowedMentions AllowedMention `json:"allowed_mentions"`
+		Embeds          []Embed        `json:"embeds"`
+		Components      []Component    `json:"components"`
 		Flags           int            `json:"flags"`
 	} `json:"data,omitempty"`
 	Type callbackType `json:"type,omitempty"`
 }
 
-func newEphemeral(replace bool, content string) interactionResponse {
-	callback := channelMessageWithSourceCallback
+// NewEphemeral creates an ephemeral response
+func NewEphemeral(replace bool, content string) InteractionResponse {
+	callback := ChannelMessageWithSourceCallback
 	if replace {
-		callback = updateMessageCallback
+		callback = UpdateMessageCallback
 	}
 
-	instance := interactionResponse{Type: callback}
+	instance := InteractionResponse{Type: callback}
 	instance.Data.Content = content
-	instance.Data.Flags = ephemeralMessage
-	instance.Data.Embeds = []embed{}
-	instance.Data.Components = []component{}
+	instance.Data.Flags = EphemeralMessage
+	instance.Data.Embeds = []Embed{}
+	instance.Data.Components = []Component{}
 
 	return instance
 }
 
-type allowedMention struct {
+// AllowedMention list
+type AllowedMention struct {
 	Parse []string `json:"parse"`
 }
 
-type embed struct {
-	Thumbnail   *embed  `json:"thumbnail,omitempty"`
+// Embed of content
+type Embed struct {
+	Thumbnail   *Embed  `json:"thumbnail,omitempty"`
 	Title       string  `json:"title,omitempty"`
 	Description string  `json:"description,omitempty"`
 	URL         string  `json:"url,omitempty"`
-	Fields      []field `json:"fields,omitempty"`
+	Fields      []Field `json:"fields,omitempty"`
 	Color       int     `json:"color,omitempty"`
 }
 
-func (e embed) SetColor(color int) embed {
+// SetColor define color of embed
+func (e Embed) SetColor(color int) Embed {
 	e.Color = color
 	return e
 }
 
-type field struct {
+// Field for embed
+type Field struct {
 	Name   string `json:"name,omitempty"`
 	Value  string `json:"value,omitempty"`
 	Inline bool   `json:"inline,omitempty"`
 }
 
-func newField(name, value string) field {
-	return field{
+// NewField creates new field
+func NewField(name, value string) Field {
+	return Field{
 		Name:   name,
 		Value:  value,
 		Inline: true,
 	}
 }
 
-type commandOption struct {
-	Name        string `json:"name,omitempty"`
-	Description string `json:"description,omitempty"`
-	Value       string `json:"value,omitempty"`
-	Type        int    `json:"type,omitempty"`
-	Required    bool   `json:"required,omitempty"`
-}
-
-type component struct {
+// Component describes an interactive component
+type Component struct {
 	Label      string        `json:"label,omitempty"`
 	CustomID   string        `json:"custom_id,omitempty"`
-	Components []component   `json:"components,omitempty"`
+	Components []Component   `json:"components,omitempty"`
 	Type       componentType `json:"type,omitempty"`
 	Style      buttonStyle   `json:"style,omitempty"`
 }
 
-func newButton(style buttonStyle, label, customID string) component {
-	return component{
+// NewButton creates a new button
+func NewButton(style buttonStyle, label, customID string) Component {
+	return Component{
 		Type:     buttonType,
 		Style:    style,
 		Label:    label,
@@ -144,8 +156,18 @@ func newButton(style buttonStyle, label, customID string) component {
 	}
 }
 
-type command struct {
+// Command configuration
+type Command struct {
 	Name        string          `json:"name,omitempty"`
 	Description string          `json:"description,omitempty"`
-	Options     []commandOption `json:"options,omitempty"`
+	Options     []CommandOption `json:"options,omitempty"`
+}
+
+// CommandOption configuration option
+type CommandOption struct {
+	Name        string `json:"name,omitempty"`
+	Description string `json:"description,omitempty"`
+	Value       string `json:"value,omitempty"`
+	Type        int    `json:"type,omitempty"`
+	Required    bool   `json:"required,omitempty"`
 }

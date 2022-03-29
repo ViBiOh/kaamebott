@@ -24,10 +24,10 @@ import (
 )
 
 // CommandHandler for handling when user send a slash command
-type CommandHandler func(w http.ResponseWriter, r *http.Request, pathName, text string)
+type CommandHandler func(ctx context.Context, w http.ResponseWriter, pathName, text string)
 
 // InteractHandler for handling when user interact with a button
-type InteractHandler func(r *http.Request, user string, actions []InteractiveAction) Response
+type InteractHandler func(ctx context.Context, user string, actions []InteractiveAction) Response
 
 // Config of package
 type Config struct {
@@ -89,7 +89,7 @@ func (a App) Handler() http.Handler {
 			if r.URL.Path == "/interactive" {
 				a.handleInteract(w, r)
 			} else {
-				a.onCommand(w, r, strings.TrimPrefix(r.URL.Path, "/"), r.FormValue("text"))
+				a.onCommand(r.Context(), w, strings.TrimPrefix(r.URL.Path, "/"), r.FormValue("text"))
 			}
 
 			return
@@ -144,7 +144,7 @@ func (a App) handleInteract(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	a.send(payload.ResponseURL, a.onInteract(r, payload.User.ID, payload.Actions))
+	a.send(payload.ResponseURL, a.onInteract(r.Context(), payload.User.ID, payload.Actions))
 }
 
 func (a App) returnEphemeral(w http.ResponseWriter, message string) {

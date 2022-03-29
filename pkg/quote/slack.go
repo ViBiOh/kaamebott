@@ -2,13 +2,11 @@ package quote
 
 import (
 	"context"
-	"flag"
 	"fmt"
 	"net/http"
 	"net/url"
 	"strings"
 
-	"github.com/ViBiOh/flags"
 	"github.com/ViBiOh/httputils/v4/pkg/httperror"
 	"github.com/ViBiOh/httputils/v4/pkg/httpjson"
 	"github.com/ViBiOh/kaamebott/pkg/model"
@@ -24,49 +22,35 @@ const (
 
 var cancelButton = slack.NewButtonElement("Annuler", cancelValue, "", "danger")
 
-// Config of package
-type Config struct {
-	website *string
-}
-
 // App of package
 type App struct {
 	searchApp search.App
 	website   string
 }
 
-// Flags adds flags for configuring package
-func Flags(fs *flag.FlagSet, prefix string, overrides ...flags.Override) Config {
-	return Config{
-		website: flags.String(fs, prefix, "slack", "Website", "URL of public website", "https://kaamebott.vibioh.fr", overrides),
-	}
-}
-
 // New creates new App from Config
-func New(config Config, searchApp search.App) App {
+func New(website string, searchApp search.App) App {
 	return App{
-		website:   strings.TrimSpace(*config.website),
+		website:   website,
 		searchApp: searchApp,
 	}
 }
 
 // SlackCommand handler
-func (a App) SlackCommand(w http.ResponseWriter, r *http.Request, pathName, text string) {
+func (a App) SlackCommand(ctx context.Context, w http.ResponseWriter, pathName, text string) {
 	if !a.searchApp.HasCollection(pathName) {
 		httperror.NotFound(w)
 	}
 
-	httpjson.Write(w, http.StatusOK, a.getQuoteBlock(r.Context(), pathName, r.FormValue("text"), ""))
+	httpjson.Write(w, http.StatusOK, a.getQuoteBlock(ctx, pathName, text, ""))
 }
 
 // SlackInteract handler
-func (a App) SlackInteract(r *http.Request, user string, actions []slack.InteractiveAction) slack.Response {
+func (a App) SlackInteract(ctx context.Context, user string, actions []slack.InteractiveAction) slack.Response {
 	action := actions[0]
 	if action.ActionID == cancelValue {
 		return slack.NewEphemeralMessage("Ok, pas maintenant.")
 	}
-
-	ctx := context.Background()
 
 	if action.ActionID == sendValue {
 		quote, err := a.searchApp.GetByID(ctx, action.BlockID, action.Value)

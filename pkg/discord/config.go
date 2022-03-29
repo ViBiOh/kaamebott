@@ -10,29 +10,8 @@ import (
 	"github.com/ViBiOh/httputils/v4/pkg/logger"
 )
 
-var (
-	commands = map[string]command{
-		kaamelottName: {
-			Name:        kaamelottName,
-			Description: "Une citation de la cour du roi Arthur",
-			Options: []commandOption{
-				{
-					Name:        queryParam,
-					Description: "Un mot clé pour affiner la recherche",
-					Type:        3, // https://discord.com/developers/docs/interactions/slash-commands#applicationcommandoptiontype
-					Required:    true,
-				},
-			},
-		},
-	}
-
-	indexes = map[string]string{
-		kaamelottName: kaamelottIndexName,
-	}
-)
-
 // Start discord configuration
-func (a App) Start() error {
+func (a App) Start(commands map[string]Command) error {
 	if len(a.applicationID) == 0 {
 		return nil
 	}

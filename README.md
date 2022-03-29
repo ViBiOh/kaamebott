@@ -78,8 +78,6 @@ Usage of kaamebott:
         [discord] Client Secret {KAAMEBOTT_DISCORD_CLIENT_SECRET}
   -discordPublicKey string
         [discord] Public Key {KAAMEBOTT_DISCORD_PUBLIC_KEY}
-  -discordWebsite string
-        [discord] URL of public website {KAAMEBOTT_DISCORD_WEBSITE} (default "https://kaamebott.vibioh.fr")
   -frameOptions string
         [owasp] X-Frame-Options {KAAMEBOTT_FRAME_OPTIONS} (default "deny")
   -graceDuration string
@@ -142,8 +140,6 @@ Usage of kaamebott:
         [slack] ClientSecret {KAAMEBOTT_SLACK_CLIENT_SECRET}
   -slackSigningSecret string
         [slack] Signing secret {KAAMEBOTT_SLACK_SIGNING_SECRET}
-  -slackWebsite string
-        [slack] URL of public website {KAAMEBOTT_SLACK_WEBSITE} (default "https://kaamebott.vibioh.fr")
   -title string
         Application title {KAAMEBOTT_TITLE} (default "Kaamebott")
   -tracerRate string

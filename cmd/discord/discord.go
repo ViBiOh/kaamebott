@@ -6,7 +6,7 @@ import (
 
 	"github.com/ViBiOh/httputils/v4/pkg/logger"
 	"github.com/ViBiOh/kaamebott/pkg/discord"
-	"github.com/ViBiOh/kaamebott/pkg/search"
+	"github.com/ViBiOh/kaamebott/pkg/quote"
 )
 
 func main() {
@@ -20,8 +20,8 @@ func main() {
 	logger.Global(logger.New(loggerConfig))
 	defer logger.Close()
 
-	discordApp, err := discord.New(discordConfig, search.App{})
+	discordApp, err := discord.New(discordConfig, "", nil)
 	logger.Fatal(err)
 
-	logger.Fatal(discordApp.Start())
+	logger.Fatal(discordApp.Start(quote.Commands))
 }

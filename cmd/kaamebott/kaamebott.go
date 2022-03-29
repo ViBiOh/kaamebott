@@ -53,7 +53,6 @@ func main() {
 	searchConfig := search.Flags(fs, "search")
 	slackConfig := slack.Flags(fs, "slack")
 	discordConfig := discord.Flags(fs, "discord")
-	quoteConfig := quote.Flags(fs, "quote")
 
 	dbConfig := db.Flags(fs, "db")
 
@@ -80,12 +79,13 @@ func main() {
 	rendererApp, err := renderer.New(rendererConfig, content, search.FuncMap, tracerApp)
 	logger.Fatal(err)
 
+	website := rendererApp.PublicURL("")
+
 	searchApp := search.New(searchConfig, quoteDB, rendererApp)
+	quoteApp := quote.New(website, searchApp)
 
-	discordApp, err := discord.New(discordConfig, searchApp)
+	discordApp, err := discord.New(discordConfig, website, quoteApp.DiscordHandler)
 	logger.Fatal(err)
-
-	quoteApp := quote.New(quoteConfig, searchApp)
 
 	slackHandler := http.StripPrefix(slackPrefix, slack.New(slackConfig, quoteApp.SlackCommand, quoteApp.SlackInteract).Handler())
 	discordHandler := http.StripPrefix(discordPrefix, discordApp.Handler())
