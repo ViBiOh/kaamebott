@@ -7,4 +7,5 @@ type Quote struct {
 	Character  string `json:"character"`
 	Context    string `json:"context"`
 	Collection string `json:"collection"`
+	Language   string `json:"language"`
 }

@@ -20,7 +20,22 @@ const (
 	sendValue   = "send"
 )
 
-var cancelButton = slack.NewButtonElement("Annuler", cancelValue, "", "danger")
+var i18n map[string]map[string]string = map[string]map[string]string{
+	"french": {
+		cancelValue: "Annuler",
+		nextValue:   "Une autre ?",
+		sendValue:   "Envoyer",
+		"not_found": "On n'a rien trouvé pour",
+		"title":     "partage une petite _quote_",
+	},
+	"english": {
+		cancelValue: "Cancel",
+		nextValue:   "Another?",
+		sendValue:   "Send",
+		"not_found": "We didn't find anything for",
+		"title":     "shares a _quote_",
+	},
+}
 
 // App of package
 type App struct {
@@ -49,13 +64,13 @@ func (a App) SlackCommand(ctx context.Context, w http.ResponseWriter, pathName, 
 func (a App) SlackInteract(ctx context.Context, user string, actions []slack.InteractiveAction) slack.Response {
 	action := actions[0]
 	if action.ActionID == cancelValue {
-		return slack.NewEphemeralMessage("Ok, pas maintenant.")
+		return slack.NewEphemeralMessage("Ok, not now.")
 	}
 
 	if action.ActionID == sendValue {
 		quote, err := a.searchApp.GetByID(ctx, action.BlockID, action.Value)
 		if err != nil {
-			return slack.NewEphemeralMessage(fmt.Sprintf("Impossible de retrouver la citation demandée: %s", err))
+			return slack.NewEphemeralMessage(fmt.Sprintf("unable to find asked quote: %s", err))
 		}
 
 		return a.getQuoteResponse(quote, "", user)
@@ -64,13 +79,13 @@ func (a App) SlackInteract(ctx context.Context, user string, actions []slack.Int
 	if action.ActionID == nextValue {
 		lastIndex := strings.LastIndexAny(action.Value, "@")
 		if lastIndex < 1 {
-			return slack.NewEphemeralMessage(fmt.Sprintf("La valeur du bouton semble incorrecte: %s", action.Value))
+			return slack.NewEphemeralMessage(fmt.Sprintf("button value seems wrong: %s", action.Value))
 		}
 
 		return a.getQuoteBlock(ctx, action.BlockID, action.Value[:lastIndex], action.Value[lastIndex+1:])
 	}
 
-	return slack.NewEphemeralMessage("On ne comprend pas l'action à effectuer")
+	return slack.NewEphemeralMessage("We don't understand what to do.")
 }
 
 func (a App) getQuote(ctx context.Context, index, text string, last string) (model.Quote, error) {
@@ -88,7 +103,7 @@ func (a App) getQuote(ctx context.Context, index, text string, last string) (mod
 func (a App) getQuoteBlock(ctx context.Context, index, text string, last string) slack.Response {
 	quote, err := a.getQuote(ctx, index, text, last)
 	if err != nil {
-		return slack.NewEphemeralMessage(fmt.Sprintf("Ah, c'est cassé 😱. La raison : %s", err))
+		return slack.NewEphemeralMessage(fmt.Sprintf("Oh, it's broken 😱. Reason: %s", err))
 	}
 
 	return a.getQuoteResponse(quote, text, "")
@@ -97,7 +112,7 @@ func (a App) getQuoteBlock(ctx context.Context, index, text string, last string)
 func (a App) getQuoteResponse(quote model.Quote, query, user string) slack.Response {
 	content := a.getContentBlock(quote)
 	if content == slack.EmptySection {
-		return slack.NewEphemeralMessage(fmt.Sprintf("On n'a rien trouvé pour `%s`", query))
+		return slack.NewEphemeralMessage(fmt.Sprintf("%s `%s`", i18n[quote.Language]["not_now"], query))
 	}
 
 	if len(user) == 0 {
@@ -106,8 +121,8 @@ func (a App) getQuoteResponse(quote model.Quote, query, user string) slack.Respo
 			ReplaceOriginal: true,
 			Blocks: []slack.Block{
 				content,
-				slack.NewActions(quote.Collection, cancelButton, slack.NewButtonElement("Une autre ?", nextValue, fmt.Sprintf("%s@%s", query, quote.ID), ""),
-					slack.NewButtonElement("Envoyer", sendValue, quote.ID, "primary")),
+				slack.NewActions(quote.Collection, slack.NewButtonElement(i18n[quote.Language][cancelValue], cancelValue, "", "danger"), slack.NewButtonElement(i18n[quote.Language][nextValue], nextValue, fmt.Sprintf("%s@%s", query, quote.ID), ""),
+					slack.NewButtonElement(i18n[quote.Language][sendValue], sendValue, quote.ID, "primary")),
 			},
 		}
 	}
@@ -116,7 +131,7 @@ func (a App) getQuoteResponse(quote model.Quote, query, user string) slack.Respo
 		ResponseType:   "in_channel",
 		DeleteOriginal: true,
 		Blocks: []slack.Block{
-			slack.NewSection(slack.NewText(fmt.Sprintf("<@%s> vous partage une petite _quote_  ", user)), nil),
+			slack.NewSection(slack.NewText(fmt.Sprintf("<@%s> %s", user, i18n[quote.Language]["title"])), nil),
 			content,
 		},
 	}
@@ -144,8 +159,8 @@ func (a App) getOss117Block(quote model.Quote) slack.Block {
 }
 
 func (a App) getOfficeBlock(quote model.Quote) slack.Block {
-	text := slack.NewText(fmt.Sprintf("*%s*\n\n_%s_\n\n%s", quote.Context, quote.Character, quote.Value))
-	accessory := slack.NewAccessory(fmt.Sprintf("%s/images/office.png", a.website), "office")
+	text := slack.NewText(fmt.Sprintf("*%s*\n\n%s", quote.Context, quote.Value))
+	accessory := slack.NewAccessory(fmt.Sprintf("%s/images/office.jpg", a.website), "office")
 
 	return slack.NewSection(text, accessory)
 }

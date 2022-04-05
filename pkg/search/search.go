@@ -83,12 +83,12 @@ func (a App) HasCollection(collection string) bool {
 
 // GetByID find object by ID
 func (a App) GetByID(ctx context.Context, collection, id string) (model.Quote, error) {
-	collectionID, _, err := a.getCollectionID(ctx, collection)
+	collectionID, language, err := a.getCollectionID(ctx, collection)
 	if err != nil {
 		return model.Quote{}, err
 	}
 
-	return a.getQuote(ctx, collectionID, id)
+	return a.getQuote(ctx, collectionID, language, id)
 }
 
 // Search for a quote
@@ -103,12 +103,12 @@ func (a App) Search(ctx context.Context, collection, query, last string) (model.
 
 // Random quote
 func (a App) Random(ctx context.Context, collection string) (model.Quote, error) {
-	collectionID, _, err := a.getCollectionID(ctx, collection)
+	collectionID, language, err := a.getCollectionID(ctx, collection)
 	if err != nil {
 		return model.Quote{}, err
 	}
 
-	return a.getRandomQuote(ctx, collectionID)
+	return a.getRandomQuote(ctx, collectionID, language)
 }
 
 // TemplateFunc used for rendering GUI
