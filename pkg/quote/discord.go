@@ -20,6 +20,7 @@ const (
 
 	kaamelottName = "kaamelott"
 	oss117Name    = "oss117"
+	officeName    = "office"
 )
 
 var (
@@ -44,6 +45,18 @@ var (
 				{
 					Name:        queryParam,
 					Description: "Un mot clé pour affiner la recherche",
+					Type:        3, // https://discord.com/developers/docs/interactions/slash-commands#applicationcommandoptiontype
+					Required:    true,
+				},
+			},
+		},
+		officeName: {
+			Name:        officeName,
+			Description: "Une citation de The Office",
+			Options: []discord.CommandOption{
+				{
+					Name:        queryParam,
+					Description: "A keyword to refine search",
 					Type:        3, // https://discord.com/developers/docs/interactions/slash-commands#applicationcommandoptiontype
 					Required:    true,
 				},
@@ -87,7 +100,7 @@ func (a App) DiscordHandler(w http.ResponseWriter, r *http.Request, webhook disc
 		respond(w, a.quoteResponse(webhook.Member.User.ID, quote))
 
 	case 3:
-		respond(w, discord.NewEphemeral(true, "Ok, pas maintenant."))
+		respond(w, discord.NewEphemeral(true, "Ok, not now."))
 	}
 }
 
@@ -125,11 +138,11 @@ func (a App) getQuery(webhook discord.InteractionRequest) string {
 func (a App) handleSearch(ctx context.Context, index, query, last string) discord.InteractionResponse {
 	quote, err := a.searchApp.Search(ctx, index, query, last)
 	if err != nil && !errors.Is(err, search.ErrNotFound) {
-		return discord.NewEphemeral(len(last) != 0, fmt.Sprintf("Ah, c'est cassé 😱. La raison : %s", err))
+		return discord.NewEphemeral(len(last) != 0, fmt.Sprintf("Oh, it's broken 😱. Reason: %s", err))
 	}
 
 	if len(quote.ID) == 0 {
-		return discord.NewEphemeral(len(last) != 0, fmt.Sprintf("On n'a rien trouvé pour `%s`", query))
+		return discord.NewEphemeral(len(last) != 0, fmt.Sprintf("We found nothing for `%s`", query))
 	}
 
 	return a.interactiveResponse(quote, len(last) != 0, query)
@@ -148,9 +161,9 @@ func (a App) interactiveResponse(quote model.Quote, replace bool, recherche stri
 		{
 			Type: discord.ActionRowType,
 			Components: []discord.Component{
-				discord.NewButton(discord.PrimaryButton, "Envoyer", fmt.Sprintf("%s%s%s", contentSeparator, quote.ID, contentSeparator)),
-				discord.NewButton(discord.SecondaryButton, "Une autre ?", fmt.Sprintf("%s%s%s", recherche, contentSeparator, quote.ID)),
-				discord.NewButton(discord.DangerButton, "Annuler", fmt.Sprintf("%s%s%s", contentSeparator, contentSeparator, contentSeparator)),
+				discord.NewButton(discord.PrimaryButton, i18n[quote.Language][sendValue], fmt.Sprintf("%s%s%s", contentSeparator, quote.ID, contentSeparator)),
+				discord.NewButton(discord.SecondaryButton, i18n[quote.Language][nextValue], fmt.Sprintf("%s%s%s", recherche, contentSeparator, quote.ID)),
+				discord.NewButton(discord.DangerButton, i18n[quote.Language][cancelValue], fmt.Sprintf("%s%s%s", contentSeparator, contentSeparator, contentSeparator)),
 			},
 		},
 	}
@@ -160,7 +173,7 @@ func (a App) interactiveResponse(quote model.Quote, replace bool, recherche stri
 
 func (a App) quoteResponse(user string, quote model.Quote) discord.InteractionResponse {
 	instance := discord.InteractionResponse{Type: discord.ChannelMessageWithSourceCallback}
-	instance.Data.Content = fmt.Sprintf("<@!%s> vous partage une petite quote", user)
+	instance.Data.Content = fmt.Sprintf("<@!%s> %s", user, i18n[quote.Language]["title"])
 	instance.Data.AllowedMentions = discord.AllowedMention{
 		Parse: []string{},
 	}
@@ -174,6 +187,8 @@ func (a App) getQuoteEmbed(quote model.Quote) discord.Embed {
 	case kaamelottName:
 		return a.getKaamelottEmbeds(quote)
 	case oss117Name:
+		return a.getOss117Embeds(quote)
+	case officeName:
 		return a.getOss117Embeds(quote)
 	default:
 		return discord.Embed{
@@ -211,6 +226,16 @@ func (a App) getOss117Embeds(quote model.Quote) discord.Embed {
 		},
 		Fields: []discord.Field{
 			discord.NewField("Personnage", quote.Character),
+		},
+	}
+}
+
+func (a App) getOfficeEmbeds(quote model.Quote) discord.Embed {
+	return discord.Embed{
+		Title:       quote.Context,
+		Description: quote.Value,
+		Thumbnail: &discord.Embed{
+			URL: fmt.Sprintf("%s/images/office.jpg", a.website),
 		},
 	}
 }
