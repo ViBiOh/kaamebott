@@ -23,52 +23,45 @@ const (
 	officeName    = "office"
 )
 
-var (
-	// Commands configuration
-	Commands = map[string]discord.Command{
-		kaamelottName: {
-			Name:        kaamelottName,
-			Description: "Une citation de la cour du roi Arthur",
-			Options: []discord.CommandOption{
-				{
-					Name:        queryParam,
-					Description: "Un mot clé pour affiner la recherche",
-					Type:        3, // https://discord.com/developers/docs/interactions/slash-commands#applicationcommandoptiontype
-					Required:    true,
-				},
+// Commands configuration
+var Commands = map[string]discord.Command{
+	kaamelottName: {
+		Name:        kaamelottName,
+		Description: "Une citation de la cour du roi Arthur",
+		Options: []discord.CommandOption{
+			{
+				Name:        queryParam,
+				Description: "Un mot clé pour affiner la recherche",
+				Type:        3, // https://discord.com/developers/docs/interactions/slash-commands#applicationcommandoptiontype
+				Required:    true,
 			},
 		},
-		oss117Name: {
-			Name:        oss117Name,
-			Description: "Une citation des films OSS117",
-			Options: []discord.CommandOption{
-				{
-					Name:        queryParam,
-					Description: "Un mot clé pour affiner la recherche",
-					Type:        3, // https://discord.com/developers/docs/interactions/slash-commands#applicationcommandoptiontype
-					Required:    true,
-				},
+	},
+	oss117Name: {
+		Name:        oss117Name,
+		Description: "Une citation des films OSS117",
+		Options: []discord.CommandOption{
+			{
+				Name:        queryParam,
+				Description: "Un mot clé pour affiner la recherche",
+				Type:        3, // https://discord.com/developers/docs/interactions/slash-commands#applicationcommandoptiontype
+				Required:    true,
 			},
 		},
-		officeName: {
-			Name:        officeName,
-			Description: "Une citation de The Office",
-			Options: []discord.CommandOption{
-				{
-					Name:        queryParam,
-					Description: "A keyword to refine search",
-					Type:        3, // https://discord.com/developers/docs/interactions/slash-commands#applicationcommandoptiontype
-					Required:    true,
-				},
+	},
+	officeName: {
+		Name:        officeName,
+		Description: "A citation from The Office",
+		Options: []discord.CommandOption{
+			{
+				Name:        queryParam,
+				Description: "A keyword to refine search",
+				Type:        3, // https://discord.com/developers/docs/interactions/slash-commands#applicationcommandoptiontype
+				Required:    true,
 			},
 		},
-	}
-
-	indexes = map[string]bool{
-		kaamelottName: true,
-		oss117Name:    true,
-	}
-)
+	},
+}
 
 // DiscordHandler handle discord request
 func (a App) DiscordHandler(w http.ResponseWriter, r *http.Request, webhook discord.InteractionRequest) {
@@ -113,7 +106,7 @@ func (a App) checkRequest(webhook discord.InteractionRequest) (string, error) {
 		index = webhook.Data.Name
 	}
 
-	if !indexes[index] {
+	if _, ok := Commands[index]; !ok {
 		return "", fmt.Errorf("unknown command `%s`", index)
 	}
 
