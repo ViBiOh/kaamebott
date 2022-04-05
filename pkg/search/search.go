@@ -61,20 +61,20 @@ func New(config Config, dbApp db.App, rendererApp renderer.App) App {
 	}
 }
 
-func (a App) getCollectionID(ctx context.Context, collection string) (uint64, error) {
-	collectionID, err := a.getCollection(ctx, collection)
+func (a App) getCollectionID(ctx context.Context, collection string) (uint64, string, error) {
+	collectionID, language, err := a.getCollection(ctx, collection)
 	if err != nil {
-		return 0, fmt.Errorf("unable to get collection: %s", err)
+		return 0, "", fmt.Errorf("unable to get collection: %s", err)
 	}
 	if collectionID == 0 {
-		return 0, ErrIndexNotFound
+		return 0, "", ErrIndexNotFound
 	}
-	return collectionID, nil
+	return collectionID, language, nil
 }
 
 // HasCollection determines if defined collection is configured
 func (a App) HasCollection(collection string) bool {
-	collectionID, err := a.getCollection(context.Background(), collection)
+	collectionID, _, err := a.getCollection(context.Background(), collection)
 	if err != nil {
 		logger.Error("unable to check if collection exists: %s", err)
 	}
@@ -83,7 +83,7 @@ func (a App) HasCollection(collection string) bool {
 
 // GetByID find object by ID
 func (a App) GetByID(ctx context.Context, collection, id string) (model.Quote, error) {
-	collectionID, err := a.getCollectionID(ctx, collection)
+	collectionID, _, err := a.getCollectionID(ctx, collection)
 	if err != nil {
 		return model.Quote{}, err
 	}
@@ -93,17 +93,17 @@ func (a App) GetByID(ctx context.Context, collection, id string) (model.Quote, e
 
 // Search for a quote
 func (a App) Search(ctx context.Context, collection, query, last string) (model.Quote, error) {
-	collectionID, err := a.getCollectionID(ctx, collection)
+	collectionID, language, err := a.getCollectionID(ctx, collection)
 	if err != nil {
 		return model.Quote{}, err
 	}
 
-	return a.searchQuote(ctx, collectionID, query, last)
+	return a.searchQuote(ctx, collectionID, language, query, last)
 }
 
 // Random quote
 func (a App) Random(ctx context.Context, collection string) (model.Quote, error) {
-	collectionID, err := a.getCollectionID(ctx, collection)
+	collectionID, _, err := a.getCollectionID(ctx, collection)
 	if err != nil {
 		return model.Quote{}, err
 	}

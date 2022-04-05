@@ -36,7 +36,7 @@ func main() {
 	}
 
 	logger.Fatal(quoteDB.DoAtomic(context.Background(), func(ctx context.Context) error {
-		collectionID, err := getOrCreateCollection(ctx, quoteDB, collectionName)
+		collectionID, err := getOrCreateCollection(ctx, quoteDB, collectionName, *language)
 		if err != nil {
 			return fmt.Errorf("unable to get or create collection: %s", err)
 		}
@@ -79,7 +79,7 @@ func readQuotes(filename string) ([]model.Quote, string, error) {
 	return quotes, path.Base(strings.TrimSuffix(reader.Name(), ".json")), nil
 }
 
-func getOrCreateCollection(ctx context.Context, quoteDB db.App, name string) (uint64, error) {
+func getOrCreateCollection(ctx context.Context, quoteDB db.App, name, language string) (uint64, error) {
 	var collectionID uint64
 
 	if err := quoteDB.Get(ctx, func(row pgx.Row) error {
@@ -96,7 +96,7 @@ func getOrCreateCollection(ctx context.Context, quoteDB db.App, name string) (ui
 		return collectionID, nil
 	}
 
-	id, err := quoteDB.Create(ctx, "INSERT INTO kaamebott.collection (name) VALUES ($1) RETURNING id", name)
+	id, err := quoteDB.Create(ctx, "INSERT INTO kaamebott.collection (name, lnaguage) VALUES ($1, $2) RETURNING id", name, language)
 	if err != nil {
 		return collectionID, fmt.Errorf("unable to create collection: %s", err)
 	}

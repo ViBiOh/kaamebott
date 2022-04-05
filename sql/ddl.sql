@@ -23,7 +23,8 @@ CREATE SCHEMA kaamebott;
 CREATE SEQUENCE kaamebott.collection_seq;
 CREATE TABLE kaamebott.collection (
   id BIGINT NOT NULL DEFAULT nextval('kaamebott.collection_seq'),
-  name TEXT NOT NULL
+  name TEXT NOT NULL,
+  language TEXT NOT NULL DEFAULT 'french'
 );
 ALTER SEQUENCE kaamebott.collection_seq OWNED BY kaamebott.collection.id;
 

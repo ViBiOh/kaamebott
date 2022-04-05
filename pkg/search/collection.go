@@ -8,22 +8,23 @@ import (
 
 const getCollectionQuery = `
 SELECT
-  id
+  id,
+  language
 FROM
   kaamebott.collection
 WHERE
   name = $1
 `
 
-func (a App) getCollection(ctx context.Context, name string) (uint64, error) {
-	var id uint64
+func (a App) getCollection(ctx context.Context, name string) (id uint64, language string, err error) {
 	scanner := func(row pgx.Row) error {
-		err := row.Scan(&id)
-		if err == pgx.ErrNoRows {
+		scanErr := row.Scan(&id, &language)
+		if scanErr == pgx.ErrNoRows {
 			return nil
 		}
-		return err
+		return scanErr
 	}
 
-	return id, a.dbApp.Get(ctx, scanner, getCollectionQuery, name)
+	err = a.dbApp.Get(ctx, scanner, getCollectionQuery, name)
+	return
 }

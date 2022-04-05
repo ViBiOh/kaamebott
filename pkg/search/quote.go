@@ -31,7 +31,7 @@ ORDER BY
 LIMIT 1
 `
 
-func computeQuoteQuery(collectionID uint64, last string, words []string) (string, []any) {
+func computeQuoteQuery(collectionID uint64, language, last string, words []string) (string, []any) {
 	query := strings.Builder{}
 	query.WriteString(searchQuoteQuery)
 
@@ -41,7 +41,7 @@ func computeQuoteQuery(collectionID uint64, last string, words []string) (string
 
 	if len(words) != 0 {
 		args = append(args, strings.Join(words, " & "))
-		query.WriteString(fmt.Sprintf(" AND q.search_vector @@ to_tsquery('french', $%d)", len(args)))
+		query.WriteString(fmt.Sprintf(" AND q.search_vector @@ to_tsquery('%s', $%d)", language, len(args)))
 	}
 
 	if len(last) != 0 {
@@ -54,7 +54,7 @@ func computeQuoteQuery(collectionID uint64, last string, words []string) (string
 	return query.String(), args
 }
 
-func (a App) searchQuote(ctx context.Context, collectionID uint64, query, last string) (model.Quote, error) {
+func (a App) searchQuote(ctx context.Context, collectionID uint64, language, query, last string) (model.Quote, error) {
 	var words []string
 	if len(query) > 0 {
 		words = strings.Split(query, " ")
@@ -72,7 +72,7 @@ func (a App) searchQuote(ctx context.Context, collectionID uint64, query, last s
 		return err
 	}
 
-	sqlQuery, sqlArgs := computeQuoteQuery(collectionID, last, words)
+	sqlQuery, sqlArgs := computeQuoteQuery(collectionID, language, last, words)
 
 	return item, a.dbApp.Get(ctx, scanner, sqlQuery, sqlArgs...)
 }
