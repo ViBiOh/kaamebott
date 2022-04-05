@@ -182,7 +182,7 @@ func (a App) getQuoteEmbed(quote model.Quote) discord.Embed {
 	case oss117Name:
 		return a.getOss117Embeds(quote)
 	case officeName:
-		return a.getOss117Embeds(quote)
+		return a.getOfficeEmbeds(quote)
 	default:
 		return discord.Embed{
 			Title:       "Error",
