@@ -20,6 +20,9 @@ const (
 
 	kaamelottName      = "kaamelott"
 	kaamelottIndexName = "kaamelott"
+
+	oss117Name      = "oss117"
+	oss117IndexName = "oss117"
 )
 
 var (
@@ -37,10 +40,23 @@ var (
 				},
 			},
 		},
+		oss117Name: {
+			Name:        oss117Name,
+			Description: "Une citation des films OSS117",
+			Options: []discord.CommandOption{
+				{
+					Name:        queryParam,
+					Description: "Un mot clé pour affiner la recherche",
+					Type:        3, // https://discord.com/developers/docs/interactions/slash-commands#applicationcommandoptiontype
+					Required:    true,
+				},
+			},
+		},
 	}
 
 	indexes = map[string]string{
 		kaamelottName: kaamelottIndexName,
+		oss117Name:    oss117IndexName,
 	}
 )
 
@@ -161,6 +177,8 @@ func (a App) getQuoteEmbed(quote model.Quote) discord.Embed {
 	switch quote.Collection {
 	case kaamelottIndexName:
 		return a.getKaamelottEmbeds(quote)
+	case oss117IndexName:
+		return a.getOss117Embeds(quote)
 	default:
 		return discord.Embed{
 			Title:       "Error",
@@ -180,6 +198,20 @@ func (a App) getKaamelottEmbeds(quote model.Quote) discord.Embed {
 		URL:         fmt.Sprintf("https://kaamelott-soundboard.2ec0b4.fr/#son/%s", url.PathEscape(quote.ID)),
 		Thumbnail: &discord.Embed{
 			URL: fmt.Sprintf("%s/images/kaamelott.png", a.website),
+		},
+		Fields: []discord.Field{
+			discord.NewField("Personnage", quote.Character),
+		},
+	}
+}
+
+func (a App) getOss117Embeds(quote model.Quote) discord.Embed {
+	return discord.Embed{
+		Title:       quote.Context,
+		Description: quote.Value,
+		URL:         fmt.Sprintf("https://trazip-oss-117-quotes-api.herokuapp.com/api/v1/quotes/%s", url.PathEscape(quote.ID)),
+		Thumbnail: &discord.Embed{
+			URL: fmt.Sprintf("%s/images/oss117.png", a.website),
 		},
 		Fields: []discord.Field{
 			discord.NewField("Personnage", quote.Character),

@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+
+set -o nounset -o pipefail -o errexit
+
+main() {
+  curl --disable --silent --show-error --location --max-time 30 "https://trazip-oss-117-quotes-api.herokuapp.com/api/v1/quotes" | jq '[ .[] | {id: (.id|tostring), value: .content, character: .author, context: .film } ]' >"oss117.json"
+
+  INDEXER_FILE="oss117.json" make run-indexer
+  rm "oss117.json"
+}
+
+main "${@}"

@@ -126,17 +126,23 @@ func (a App) getContentBlock(quote model.Quote) slack.Block {
 	switch quote.Collection {
 	case "kaamelott":
 		return a.getKaamelottBlock(quote)
+	case "oss117":
+		return a.getOss117Block(quote)
 	default:
 		return slack.EmptySection
 	}
 }
 
-func (a App) getKaamelottBlock(output model.Quote) slack.Block {
-	titleLink := fmt.Sprintf("https://kaamelott-soundboard.2ec0b4.fr/#son/%s", url.PathEscape(output.ID))
-	content := fmt.Sprintf("_%s_ %s", output.Character, output.Value)
-
-	text := slack.NewText(fmt.Sprintf("*<%s|%s>*\n\n%s", titleLink, output.Context, content))
+func (a App) getKaamelottBlock(quote model.Quote) slack.Block {
+	text := slack.NewText(fmt.Sprintf("*<https://kaamelott-soundboard.2ec0b4.fr/#son/%s|%s>*\n\n_%s_ %s", url.PathEscape(quote.ID), quote.Context, quote.Character, quote.Value))
 	accessory := slack.NewAccessory(fmt.Sprintf("%s/images/kaamelott.png", a.website), "kaamelott")
+
+	return slack.NewSection(text, accessory)
+}
+
+func (a App) getOss117Block(quote model.Quote) slack.Block {
+	text := slack.NewText(fmt.Sprintf("*<https://trazip-oss-117-quotes-api.herokuapp.com/api/v1/quotes/%s|%s>*\n\n_%s_ %s", url.PathEscape(quote.ID), quote.Context, quote.Character, quote.Value))
+	accessory := slack.NewAccessory(fmt.Sprintf("%s/images/oss117.png", a.website), "oss117")
 
 	return slack.NewSection(text, accessory)
 }
