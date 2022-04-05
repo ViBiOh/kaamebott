@@ -10,6 +10,7 @@ import (
 	"path"
 	"strings"
 
+	"github.com/ViBiOh/flags"
 	"github.com/ViBiOh/httputils/v4/pkg/db"
 	"github.com/ViBiOh/httputils/v4/pkg/logger"
 	"github.com/ViBiOh/httputils/v4/pkg/tracer"
@@ -20,8 +21,9 @@ import (
 func main() {
 	fs := flag.NewFlagSet("indexer", flag.ExitOnError)
 
-	inputFile := fs.String("input", "", "JSON File")
-	language := fs.String("language", "french", "Language for tsvector")
+	inputFile := flags.String(fs, "", "indexer", "input", "JSON File", "", nil)
+	language := flags.String(fs, "", "indexer", "language", "Language for tsvector", "french", nil)
+
 	dbConfig := db.Flags(fs, "db")
 
 	logger.Fatal(fs.Parse(os.Args[1:]))
@@ -96,7 +98,7 @@ func getOrCreateCollection(ctx context.Context, quoteDB db.App, name, language s
 		return collectionID, nil
 	}
 
-	id, err := quoteDB.Create(ctx, "INSERT INTO kaamebott.collection (name, lnaguage) VALUES ($1, $2) RETURNING id", name, language)
+	id, err := quoteDB.Create(ctx, "INSERT INTO kaamebott.collection (name, language) VALUES ($1, $2) RETURNING id", name, language)
 	if err != nil {
 		return collectionID, fmt.Errorf("unable to create collection: %s", err)
 	}

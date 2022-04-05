@@ -99,4 +99,4 @@ run-discord:
 ## run-indexer: Locally run indexer
 .PHONY: run-indexer
 run-indexer:
-	$(INDEXER_RUNNER) -input "$(INDEXER_FILE)"
+	$(INDEXER_RUNNER)

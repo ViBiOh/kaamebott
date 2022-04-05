@@ -21,6 +21,11 @@ features:
       description: Get an OSS117 quote
       usage_hint: "[searched text]"
       should_escape: false
+    - command: /the_office
+      url: https://kaamebott.vibioh.fr/slack/the_office
+      description: Get a quote from The Office
+      usage_hint: "[searched text]"
+      should_escape: false
 oauth_config:
   redirect_urls:
     - https://kaamebott.vibioh.fr/slack/oauth

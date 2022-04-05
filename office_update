@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+
+set -o nounset -o pipefail -o errexit
+
+main() {
+  curl --disable --silent --show-error --location --max-time 30 "https://raw.githubusercontent.com/jpetitto/TheOfficeQuotes/master/assets/quotes.xml" | yq --input-format xml --output-format json --xml-attribute-prefix "" '.quotes.quote' - | jq '[ .[] | {id: .id, value: .text, character: (.character | if type == "array" then join(", ") else . end) , context: ("Season " + .season + " | " + .episode) } ]' | sed 's|<b>\([^<]*\)</b>|*\1*|g' | sed 's|<i>\([^<]*\)<\/i>|_\1_|g' | sed 's|<br/>|\\n|g' | sed 's|</br>|\\n|g' | jq 'del(.[] | select(.id == "464" or .id == "465" or .id == "466" or .id == "467" or .id == "468"))' >"office.json"
+
+  INDEXER_INPUT="office.json" INDEXER_LANGUAGE="english" make run-indexer
+  rm "office.json"
+}
+
+main "${@}"

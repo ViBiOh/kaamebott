@@ -13,7 +13,7 @@ main() {
 
   curl --disable --silent --show-error --location --max-time 30 "https://kaamelott-soundboard.2ec0b4.fr/sounds/sounds.${SOUND_VERSION}.json" | jq '[ .[] | with_entries(if .key == "title" then .key = "value" else . end) | .file |= rtrimstr(".mp3") | {id: .file, value: .value, character: .character, context: .episode } ]' >"kaamelott.json"
 
-  INDEXER_FILE="kaamelott.json" make run-indexer
+  INDEXER_INPUT="kaamelott.json" make run-indexer
   rm "kaamelott.json"
 }
 

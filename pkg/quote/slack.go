@@ -128,6 +128,8 @@ func (a App) getContentBlock(quote model.Quote) slack.Block {
 		return a.getKaamelottBlock(quote)
 	case "oss117":
 		return a.getOss117Block(quote)
+	case "the_office":
+		return a.getOfficeBlock(quote)
 	default:
 		return slack.EmptySection
 	}
@@ -139,6 +141,13 @@ func (a App) getKaamelottBlock(quote model.Quote) slack.Block {
 
 func (a App) getOss117Block(quote model.Quote) slack.Block {
 	return a.getResultBlock(quote, "https://trazip-oss-117-quotes-api.herokuapp.com/api/v1/quotes/", "oss117.png")
+}
+
+func (a App) getOfficeBlock(quote model.Quote) slack.Block {
+	text := slack.NewText(fmt.Sprintf("*%s*\n\n_%s_\n\n%s", quote.Context, quote.Character, quote.Value))
+	accessory := slack.NewAccessory(fmt.Sprintf("%s/images/office.png", a.website), "the_office")
+
+	return slack.NewSection(text, accessory)
 }
 
 func (a App) getResultBlock(quote model.Quote, urlPrefix, imageName string) slack.Block {
