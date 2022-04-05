@@ -21,6 +21,7 @@ func main() {
 	fs := flag.NewFlagSet("indexer", flag.ExitOnError)
 
 	inputFile := fs.String("input", "", "JSON File")
+	language := fs.String("language", "french", "Language for tsvector")
 	dbConfig := db.Flags(fs, "db")
 
 	logger.Fatal(fs.Parse(os.Args[1:]))
@@ -48,7 +49,7 @@ func main() {
 			return fmt.Errorf("unable to insert quotes: %s", err)
 		}
 
-		if err := quoteDB.Exec(ctx, "UPDATE kaamebott.quote SET search_vector = to_tsvector('french', id) || to_tsvector('french', value) || to_tsvector('french', character) || to_tsvector('french', context);"); err != nil {
+		if err := quoteDB.Exec(ctx, fmt.Sprintf("UPDATE kaamebott.quote SET search_vector = to_tsvector('%s', id) || to_tsvector('%s', value) || to_tsvector('%s', character) || to_tsvector('%s', context) WHERE collection_id = $1;", *language, *language, *language, *language), collectionID); err != nil {
 			return fmt.Errorf("unable to create search vector for quote: %s", err)
 		}
 
