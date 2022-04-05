@@ -18,11 +18,8 @@ const (
 	queryParam       = "recherche"
 	contentSeparator = "@"
 
-	kaamelottName      = "kaamelott"
-	kaamelottIndexName = "kaamelott"
-
-	oss117Name      = "oss117"
-	oss117IndexName = "oss117"
+	kaamelottName = "kaamelott"
+	oss117Name    = "oss117"
 )
 
 var (
@@ -54,9 +51,9 @@ var (
 		},
 	}
 
-	indexes = map[string]string{
-		kaamelottName: kaamelottIndexName,
-		oss117Name:    oss117IndexName,
+	indexes = map[string]bool{
+		kaamelottName: true,
+		oss117Name:    true,
 	}
 )
 
@@ -103,8 +100,7 @@ func (a App) checkRequest(webhook discord.InteractionRequest) (string, error) {
 		index = webhook.Data.Name
 	}
 
-	index, ok := indexes[index]
-	if !ok {
+	if !indexes[index] {
 		return "", fmt.Errorf("unknown command `%s`", index)
 	}
 
@@ -175,9 +171,9 @@ func (a App) quoteResponse(user string, quote model.Quote) discord.InteractionRe
 
 func (a App) getQuoteEmbed(quote model.Quote) discord.Embed {
 	switch quote.Collection {
-	case kaamelottIndexName:
+	case kaamelottName:
 		return a.getKaamelottEmbeds(quote)
-	case oss117IndexName:
+	case oss117Name:
 		return a.getOss117Embeds(quote)
 	default:
 		return discord.Embed{
