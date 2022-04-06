@@ -105,9 +105,23 @@ type AllowedMention struct {
 	Parse []string `json:"parse"`
 }
 
+// NewAllowedMention create an allowed mention
+func NewAllowedMention(parse []string) AllowedMention {
+	return AllowedMention{
+		Parse: parse,
+	}
+}
+
 // Image content
 type Image struct {
 	URL string `json:"url,omitempty"`
+}
+
+// NewImage create an image for embed
+func NewImage(url string) *Image {
+	return &Image{
+		URL: url,
+	}
 }
 
 // Author content
@@ -116,16 +130,23 @@ type Author struct {
 	URL  string `json:"url,omitempty"`
 }
 
+// NewAuthor create an author for embed
+func NewAuthor(name, url string) *Author {
+	return &Author{
+		Name: name,
+		URL:  url,
+	}
+}
+
 // Embed of content
 type Embed struct {
-	Thumbnail   *Embed  `json:"thumbnail,omitempty"`
+	Thumbnail   *Image  `json:"thumbnail,omitempty"`
+	Image       *Image  `json:"image,omitempty"`
+	Author      *Author `json:"author,omitempty"`
 	Title       string  `json:"title,omitempty"`
 	Description string  `json:"description,omitempty"`
 	URL         string  `json:"url,omitempty"`
 	Fields      []Field `json:"fields,omitempty"`
-	Image       Image   `json:"image,omitempty"`
-	Provider    Author  `json:"provider,omitempty"`
-	Author      Author  `json:"author,omitempty"`
 	Color       int     `json:"color,omitempty"`
 }
 
@@ -175,6 +196,7 @@ type Command struct {
 	Name        string          `json:"name,omitempty"`
 	Description string          `json:"description,omitempty"`
 	Options     []CommandOption `json:"options,omitempty"`
+	Guilds      []string        `json:"-"`
 }
 
 // CommandOption configuration option

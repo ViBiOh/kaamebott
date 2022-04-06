@@ -197,9 +197,7 @@ func (a App) getKaamelottEmbeds(quote model.Quote) discord.Embed {
 		Title:       quote.Context,
 		Description: quote.Value,
 		URL:         fmt.Sprintf("https://kaamelott-soundboard.2ec0b4.fr/#son/%s", url.PathEscape(quote.ID)),
-		Thumbnail: &discord.Embed{
-			URL: fmt.Sprintf("%s/images/kaamelott.png", a.website),
-		},
+		Thumbnail:   discord.NewImage(fmt.Sprintf("%s/images/kaamelott.png", a.website)),
 		Fields: []discord.Field{
 			discord.NewField("Personnage", quote.Character),
 		},
@@ -211,9 +209,7 @@ func (a App) getOss117Embeds(quote model.Quote) discord.Embed {
 		Title:       quote.Context,
 		Description: quote.Value,
 		URL:         fmt.Sprintf("https://trazip-oss-117-quotes-api.herokuapp.com/api/v1/quotes/%s", url.PathEscape(quote.ID)),
-		Thumbnail: &discord.Embed{
-			URL: fmt.Sprintf("%s/images/oss117.png", a.website),
-		},
+		Thumbnail:   discord.NewImage(fmt.Sprintf("%s/images/oss117.png", a.website)),
 		Fields: []discord.Field{
 			discord.NewField("Personnage", quote.Character),
 		},
@@ -224,8 +220,6 @@ func (a App) getOfficeEmbeds(quote model.Quote) discord.Embed {
 	return discord.Embed{
 		Title:       quote.Context,
 		Description: quote.Value,
-		Thumbnail: &discord.Embed{
-			URL: fmt.Sprintf("%s/images/office.jpg", a.website),
-		},
+		Thumbnail:   discord.NewImage(fmt.Sprintf("%s/images/office.jpg", a.website)),
 	}
 }
