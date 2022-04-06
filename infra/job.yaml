@@ -25,7 +25,7 @@ spec:
     nameOverride: kaamebott-discord
     image:
       name: vibioh/kaamebott
-      tag: "202204060714" # {"$imagepolicy": "default:flux-kaamebott-api:tag"}
+      tag: "202204061813" # {"$imagepolicy": "default:flux-kaamebott-api:tag"}
     command:
     - /discord
     config:
