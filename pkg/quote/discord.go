@@ -4,11 +4,9 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"net/http"
 	"net/url"
 	"strings"
 
-	"github.com/ViBiOh/httputils/v4/pkg/httpjson"
 	"github.com/ViBiOh/kaamebott/pkg/discord"
 	"github.com/ViBiOh/kaamebott/pkg/model"
 	"github.com/ViBiOh/kaamebott/pkg/search"
@@ -186,10 +184,6 @@ func (a App) getQuoteEmbed(quote model.Quote) discord.Embed {
 			Description: fmt.Sprintf("unable to render quote of collection `%s`", quote.Collection),
 		}
 	}
-}
-
-func respond(w http.ResponseWriter, response discord.InteractionResponse) {
-	httpjson.Write(w, http.StatusOK, response)
 }
 
 func (a App) getKaamelottEmbeds(quote model.Quote) discord.Embed {
