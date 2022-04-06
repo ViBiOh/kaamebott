@@ -3,12 +3,9 @@ package quote
 import (
 	"context"
 	"fmt"
-	"net/http"
 	"net/url"
 	"strings"
 
-	"github.com/ViBiOh/httputils/v4/pkg/httperror"
-	"github.com/ViBiOh/httputils/v4/pkg/httpjson"
 	"github.com/ViBiOh/kaamebott/pkg/model"
 	"github.com/ViBiOh/kaamebott/pkg/search"
 	"github.com/ViBiOh/kaamebott/pkg/slack"
@@ -52,12 +49,12 @@ func New(website string, searchApp search.App) App {
 }
 
 // SlackCommand handler
-func (a App) SlackCommand(ctx context.Context, w http.ResponseWriter, pathName, text string) {
-	if !a.searchApp.HasCollection(pathName) {
-		httperror.NotFound(w)
+func (a App) SlackCommand(ctx context.Context, payload slack.InteractivePayload) slack.Response {
+	if !a.searchApp.HasCollection(payload.Command) {
+		return slack.NewEphemeralMessage("unknown command")
 	}
 
-	httpjson.Write(w, http.StatusOK, a.getQuoteBlock(ctx, pathName, text, ""))
+	return a.getQuoteBlock(ctx, payload.Command, payload.Text, "")
 }
 
 // SlackInteract handler

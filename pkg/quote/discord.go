@@ -64,36 +64,33 @@ var Commands = map[string]discord.Command{
 }
 
 // DiscordHandler handle discord request
-func (a App) DiscordHandler(w http.ResponseWriter, r *http.Request, webhook discord.InteractionRequest) {
+func (a App) DiscordHandler(ctx context.Context, webhook discord.InteractionRequest) discord.InteractionResponse {
 	index, err := a.checkRequest(webhook)
 	if err != nil {
-		respond(w, discord.NewEphemeral(false, err.Error()))
-		return
+		return discord.NewEphemeral(false, err.Error())
 	}
 
 	queryValue := a.getQuery(webhook)
 	switch strings.Count(queryValue, contentSeparator) {
 	case 0:
-		respond(w, a.handleSearch(r.Context(), index, queryValue, ""))
-
+		return a.handleSearch(ctx, index, queryValue, "")
 	case 1:
 		var last string
 		lastIndex := strings.LastIndexAny(queryValue, contentSeparator)
 		last = queryValue[lastIndex+1:]
 		queryValue = queryValue[:lastIndex]
-		respond(w, a.handleSearch(r.Context(), index, queryValue, last))
-
+		return a.handleSearch(ctx, index, queryValue, last)
 	case 2:
-		quote, err := a.searchApp.GetByID(r.Context(), index, strings.Trim(queryValue, contentSeparator))
+		quote, err := a.searchApp.GetByID(ctx, index, strings.Trim(queryValue, contentSeparator))
 		if err != nil {
-			respond(w, discord.NewEphemeral(true, err.Error()))
-			return
+			return discord.NewEphemeral(true, err.Error())
 		}
 
-		respond(w, a.quoteResponse(webhook.Member.User.ID, quote))
-
+		return a.quoteResponse(webhook.Member.User.ID, quote)
 	case 3:
-		respond(w, discord.NewEphemeral(true, "Ok, not now."))
+		return discord.NewEphemeral(true, "Ok, not now.")
+	default:
+		return discord.NewEphemeral(true, "Unknown behavior.")
 	}
 }
 

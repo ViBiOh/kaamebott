@@ -24,7 +24,7 @@ import (
 )
 
 // CommandHandler for handling when user send a slash command
-type CommandHandler func(ctx context.Context, w http.ResponseWriter, pathName, text string)
+type CommandHandler func(context.Context, InteractivePayload) Response
 
 // InteractHandler for handling when user interact with a button
 type InteractHandler func(ctx context.Context, user string, actions []InteractiveAction) Response
@@ -83,16 +83,22 @@ func (a App) Handler() http.Handler {
 		switch r.Method {
 		case http.MethodOptions:
 			w.WriteHeader(http.StatusOK)
-			return
 
 		case http.MethodPost:
 			if r.URL.Path == "/interactive" {
 				a.handleInteract(w, r)
 			} else {
-				a.onCommand(r.Context(), w, strings.TrimPrefix(r.URL.Path, "/"), r.FormValue("text"))
-			}
+				payload := InteractivePayload{
+					ChannelID:   r.FormValue("channel_id"),
+					Command:     strings.TrimPrefix(r.FormValue("command"), "/"),
+					ResponseURL: r.FormValue("response_url"),
+					Text:        r.FormValue("text"),
+					Token:       r.FormValue("token"),
+					UserID:      r.FormValue("user_id"),
+				}
 
-			return
+				httpjson.Write(w, http.StatusOK, a.onCommand(r.Context(), payload))
+			}
 
 		default:
 			w.WriteHeader(http.StatusMethodNotAllowed)
@@ -136,24 +142,18 @@ func (a App) checkSignature(r *http.Request) bool {
 }
 
 func (a App) handleInteract(w http.ResponseWriter, r *http.Request) {
-	rawPayload := r.FormValue("payload")
 	var payload Interactive
-
-	if err := json.Unmarshal([]byte(rawPayload), &payload); err != nil {
-		a.returnEphemeral(w, fmt.Sprintf("cannot unmarshall payload: %v", err))
+	if err := json.Unmarshal([]byte(r.FormValue("payload")), &payload); err != nil {
+		httpjson.Write(w, http.StatusOK, NewEphemeralMessage(fmt.Sprintf("cannot unmarshall payload: %v", err)))
 		return
 	}
 
-	a.send(payload.ResponseURL, a.onInteract(r.Context(), payload.User.ID, payload.Actions))
-}
+	w.WriteHeader(http.StatusOK)
 
-func (a App) returnEphemeral(w http.ResponseWriter, message string) {
-	httpjson.Write(w, http.StatusOK, NewEphemeralMessage(message))
-}
-
-func (a App) send(url string, message Response) {
-	_, err := request.Post(url).JSON(context.Background(), message)
+	resp, err := request.Post(payload.ResponseURL).JSON(context.Background(), a.onInteract(r.Context(), payload.User.ID, payload.Actions))
 	if err != nil {
-		logger.Error("unable to send response: %s", err)
+		logger.Error("unable to send interact on response_url: %s", err)
+	} else if discardErr := request.DiscardBody(resp.Body); discardErr != nil {
+		logger.Error("unable to discard interact body on response_url: %s", err)
 	}
 }

@@ -108,6 +108,16 @@ type Response struct {
 	DeleteOriginal  bool    `json:"delete_original,omitempty"`
 }
 
+// InteractivePayload receives by a slash command
+type InteractivePayload struct {
+	ChannelID   string `json:"channel_id"`
+	Command     string `json:"command"`
+	ResponseURL string `json:"response_url"`
+	Text        string `json:"text"`
+	Token       string `json:"token"`
+	UserID      string `json:"user_id"`
+}
+
 // InteractiveAction response from slack
 type InteractiveAction struct {
 	Type     string `json:"type"`
