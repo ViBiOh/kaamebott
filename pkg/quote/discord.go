@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"net/url"
 	"strings"
 
 	"github.com/ViBiOh/kaamebott/pkg/discord"
@@ -16,9 +15,10 @@ const (
 	queryParam       = "recherche"
 	contentSeparator = "@"
 
-	kaamelottName = "kaamelott"
-	oss117Name    = "oss117"
-	officeName    = "office"
+	kaamelottName    = "kaamelott"
+	kaamelottGifName = "kaamelottGif"
+	oss117Name       = "oss117"
+	officeName       = "office"
 )
 
 // Commands configuration
@@ -26,6 +26,18 @@ var Commands = map[string]discord.Command{
 	kaamelottName: {
 		Name:        kaamelottName,
 		Description: "Une citation de la cour du roi Arthur",
+		Options: []discord.CommandOption{
+			{
+				Name:        queryParam,
+				Description: "Un mot clé pour affiner la recherche",
+				Type:        3, // https://discord.com/developers/docs/interactions/slash-commands#applicationcommandoptiontype
+				Required:    true,
+			},
+		},
+	},
+	kaamelottGifName: {
+		Name:        kaamelottGifName,
+		Description: "Une vidéo de la cour du roi Arthur",
 		Options: []discord.CommandOption{
 			{
 				Name:        queryParam,
@@ -174,6 +186,8 @@ func (a App) getQuoteEmbed(quote model.Quote) discord.Embed {
 	switch quote.Collection {
 	case kaamelottName:
 		return a.getKaamelottEmbeds(quote)
+	case kaamelottGifName:
+		return a.getKaamelottGifEmbeds(quote)
 	case oss117Name:
 		return a.getOss117Embeds(quote)
 	case officeName:
@@ -190,8 +204,17 @@ func (a App) getKaamelottEmbeds(quote model.Quote) discord.Embed {
 	return discord.Embed{
 		Title:       quote.Context,
 		Description: quote.Value,
-		URL:         fmt.Sprintf("https://kaamelott-soundboard.2ec0b4.fr/#son/%s", url.PathEscape(quote.ID)),
+		URL:         quote.URL,
 		Thumbnail:   discord.NewImage(fmt.Sprintf("%s/images/kaamelott.png", a.website)),
+		Fields: []discord.Field{
+			discord.NewField("Personnage", quote.Character),
+		},
+	}
+}
+
+func (a App) getKaamelottGifEmbeds(quote model.Quote) discord.Embed {
+	return discord.Embed{
+		Image: discord.NewImage(quote.URL),
 		Fields: []discord.Field{
 			discord.NewField("Personnage", quote.Character),
 		},
@@ -202,7 +225,6 @@ func (a App) getOss117Embeds(quote model.Quote) discord.Embed {
 	return discord.Embed{
 		Title:       quote.Context,
 		Description: quote.Value,
-		URL:         fmt.Sprintf("https://trazip-oss-117-quotes-api.herokuapp.com/api/v1/quotes/%s", url.PathEscape(quote.ID)),
 		Thumbnail:   discord.NewImage(fmt.Sprintf("%s/images/oss117.png", a.website)),
 		Fields: []discord.Field{
 			discord.NewField("Personnage", quote.Character),

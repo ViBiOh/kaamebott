@@ -8,4 +8,5 @@ type Quote struct {
 	Context    string `json:"context"`
 	Collection string `json:"collection"`
 	Language   string `json:"language"`
+	URL        string `json:"url"`
 }

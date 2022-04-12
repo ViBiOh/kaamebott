@@ -16,6 +16,11 @@ features:
       description: Get a kaamelott quote
       usage_hint: "[searched text]"
       should_escape: false
+    - command: /kaamelott_gif
+      url: https://kaamebott.vibioh.fr/slack/kaamelott_gif
+      description: Get a kaamelott gif
+      usage_hint: "[searched text]"
+      should_escape: false
     - command: /oss117
       url: https://kaamebott.vibioh.fr/slack/oss117
       description: Get an OSS117 quote

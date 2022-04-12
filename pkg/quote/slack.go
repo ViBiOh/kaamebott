@@ -3,7 +3,6 @@ package quote
 import (
 	"context"
 	"fmt"
-	"net/url"
 	"strings"
 
 	"github.com/ViBiOh/kaamebott/pkg/model"
@@ -138,6 +137,8 @@ func (a App) getContentBlock(quote model.Quote) slack.Block {
 	switch quote.Collection {
 	case "kaamelott":
 		return a.getKaamelottBlock(quote)
+	case "kaamelottgif":
+		return a.getKaamelottGifBlock(quote)
 	case "oss117":
 		return a.getOss117Block(quote)
 	case "office":
@@ -148,23 +149,26 @@ func (a App) getContentBlock(quote model.Quote) slack.Block {
 }
 
 func (a App) getKaamelottBlock(quote model.Quote) slack.Block {
-	return a.getResultBlock(quote, "https://kaamelott-soundboard.2ec0b4.fr/#son/", "kaamelott.png")
+	text := slack.NewText(fmt.Sprintf("*<%s|%s>*\n\n_%s_ %s", quote.URL, quote.Context, quote.Character, quote.Value))
+	accessory := slack.NewAccessory(fmt.Sprintf("%s/images/kaamelott.png", a.website), "kaamelott")
+
+	return slack.NewSection(text, accessory)
+}
+
+func (a App) getKaamelottGifBlock(quote model.Quote) slack.Block {
+	return slack.NewAccessory(quote.URL, quote.Value)
 }
 
 func (a App) getOss117Block(quote model.Quote) slack.Block {
-	return a.getResultBlock(quote, "https://trazip-oss-117-quotes-api.herokuapp.com/api/v1/quotes/", "oss117.png")
+	text := slack.NewText(fmt.Sprintf("*%s*\n\n_%s_ %s", quote.Context, quote.Character, quote.Value))
+	accessory := slack.NewAccessory(fmt.Sprintf("%s/images/oss117.png", a.website), "oss117")
+
+	return slack.NewSection(text, accessory)
 }
 
 func (a App) getOfficeBlock(quote model.Quote) slack.Block {
 	text := slack.NewText(fmt.Sprintf("*%s*\n\n%s", quote.Context, quote.Value))
 	accessory := slack.NewAccessory(fmt.Sprintf("%s/images/office.jpg", a.website), "office")
-
-	return slack.NewSection(text, accessory)
-}
-
-func (a App) getResultBlock(quote model.Quote, urlPrefix, imageName string) slack.Block {
-	text := slack.NewText(fmt.Sprintf("*<%s%s|%s>*\n\n_%s_ %s", urlPrefix, url.PathEscape(quote.ID), quote.Context, quote.Character, quote.Value))
-	accessory := slack.NewAccessory(fmt.Sprintf("%s/images/%s", a.website, imageName), "oss117")
 
 	return slack.NewSection(text, accessory)
 }

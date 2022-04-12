@@ -15,6 +15,7 @@ SELECT
   q.value,
   q.character,
   q.context,
+  q.url,
   c.name,
   count(1) OVER() AS full_count
 FROM
@@ -55,21 +56,21 @@ func computeQuoteQuery(collectionID uint64, language, last string, words []strin
 }
 
 func (a App) searchQuote(ctx context.Context, collectionID uint64, language, query, last string) (model.Quote, error) {
-	var words []string
-	if len(query) > 0 {
-		words = strings.Split(query, " ")
-	}
-
 	var totalCount uint
 	var item model.Quote
 
 	scanner := func(row pgx.Row) error {
-		err := row.Scan(&item.ID, &item.Value, &item.Character, &item.Context, &item.Collection, &totalCount)
+		err := row.Scan(&item.ID, &item.Value, &item.Character, &item.Context, &item.URL, &item.Collection, &totalCount)
 
 		if err == pgx.ErrNoRows {
 			return nil
 		}
 		return err
+	}
+
+	words, err := getWords(query)
+	if err != nil {
+		return item, fmt.Errorf("unable to get words: %s", err)
 	}
 
 	sqlQuery, sqlArgs := computeQuoteQuery(collectionID, language, last, words)
@@ -84,6 +85,7 @@ SELECT
   q.value,
   q.character,
   q.context,
+  q.url,
   c.name
 FROM
   kaamebott.quote q
@@ -98,7 +100,7 @@ func (a App) getQuote(ctx context.Context, collectionID uint64, language, id str
 	var item model.Quote
 
 	scanner := func(row pgx.Row) error {
-		err := row.Scan(&item.ID, &item.Value, &item.Character, &item.Context, &item.Collection)
+		err := row.Scan(&item.ID, &item.Value, &item.Character, &item.Context, &item.URL, &item.Collection)
 
 		if err == pgx.ErrNoRows {
 			return nil
@@ -117,6 +119,7 @@ SELECT
   q.value,
   q.character,
   q.context,
+  q.url,
   c.name
 FROM
   kaamebott.quote q
@@ -140,7 +143,7 @@ func (a App) getRandomQuote(ctx context.Context, collectionID uint64, language s
 	var item model.Quote
 
 	scanner := func(row pgx.Row) error {
-		err := row.Scan(&item.ID, &item.Value, &item.Character, &item.Context, &item.Collection)
+		err := row.Scan(&item.ID, &item.Value, &item.Character, &item.Context, &item.URL, &item.Collection)
 		if err == pgx.ErrNoRows {
 			return nil
 		}

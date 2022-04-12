@@ -6,6 +6,7 @@ require (
 	github.com/ViBiOh/flags v1.0.0
 	github.com/ViBiOh/httputils/v4 v4.39.4
 	github.com/jackc/pgx/v4 v4.15.0
+	golang.org/x/text v0.3.7
 )
 
 require (
@@ -39,6 +40,5 @@ require (
 	golang.org/x/crypto v0.0.0-20220307211146-efcb8507fb70 // indirect
 	golang.org/x/sys v0.0.0-20220310020820-b874c991c1a5 // indirect
 	golang.org/x/term v0.0.0-20210927222741-03fcf44c2211 // indirect
-	golang.org/x/text v0.3.7 // indirect
 	google.golang.org/protobuf v1.27.1 // indirect
 )

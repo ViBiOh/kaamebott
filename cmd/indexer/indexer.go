@@ -117,8 +117,8 @@ func insertQuotes(ctx context.Context, quoteDB db.App, collectionID uint64, quot
 		item := quotes[index]
 		index++
 
-		return []any{collectionID, item.ID, item.Value, item.Character, item.Context}, nil
+		return []any{collectionID, item.ID, item.Value, item.Character, item.Context, item.URL}, nil
 	}
 
-	return quoteDB.Bulk(ctx, feedLine, "kaamebott", "quote", "collection_id", "id", "value", "character", "context")
+	return quoteDB.Bulk(ctx, feedLine, "kaamebott", "quote", "collection_id", "id", "value", "character", "context", "url")
 }
