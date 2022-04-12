@@ -15,10 +15,11 @@ const (
 	queryParam       = "recherche"
 	contentSeparator = "@"
 
-	kaamelottName    = "kaamelott"
-	kaamelottGifName = "kaamelottgif"
-	oss117Name       = "oss117"
-	officeName       = "office"
+	kaamelottName          = "kaamelott"
+	kaamelottGifName       = "kaamelottgif"
+	kaamelottGifCollection = "kaamelott_gif"
+	oss117Name             = "oss117"
+	officeName             = "office"
 )
 
 var (
@@ -75,7 +76,7 @@ var (
 	}
 	indexes = map[string]string{
 		kaamelottName:    kaamelottName,
-		kaamelottGifName: "kaamelott_gif",
+		kaamelottGifName: kaamelottGifCollection,
 		oss117Name:       oss117Name,
 		officeName:       officeName,
 	}
@@ -187,7 +188,7 @@ func (a App) getQuoteEmbed(quote model.Quote) discord.Embed {
 	switch quote.Collection {
 	case kaamelottName:
 		return a.getKaamelottEmbeds(quote)
-	case kaamelottGifName:
+	case kaamelottGifCollection:
 		return a.getKaamelottGifEmbeds(quote)
 	case oss117Name:
 		return a.getOss117Embeds(quote)
