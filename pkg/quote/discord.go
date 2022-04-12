@@ -16,7 +16,7 @@ const (
 	contentSeparator = "@"
 
 	kaamelottName    = "kaamelott"
-	kaamelottGifName = "kaamelottGif"
+	kaamelottGifName = "kaamelottgif"
 	oss117Name       = "oss117"
 	officeName       = "office"
 )
