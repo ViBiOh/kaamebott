@@ -21,57 +21,65 @@ const (
 	officeName       = "office"
 )
 
-// Commands configuration
-var Commands = map[string]discord.Command{
-	kaamelottName: {
-		Name:        kaamelottName,
-		Description: "Une citation de la cour du roi Arthur",
-		Options: []discord.CommandOption{
-			{
-				Name:        queryParam,
-				Description: "Un mot clé pour affiner la recherche",
-				Type:        3, // https://discord.com/developers/docs/interactions/slash-commands#applicationcommandoptiontype
-				Required:    true,
+var (
+	// Commands configuration
+	Commands = map[string]discord.Command{
+		kaamelottName: {
+			Name:        kaamelottName,
+			Description: "Une citation de la cour du roi Arthur",
+			Options: []discord.CommandOption{
+				{
+					Name:        queryParam,
+					Description: "Un mot clé pour affiner la recherche",
+					Type:        3, // https://discord.com/developers/docs/interactions/slash-commands#applicationcommandoptiontype
+					Required:    true,
+				},
 			},
 		},
-	},
-	kaamelottGifName: {
-		Name:        kaamelottGifName,
-		Description: "Une vidéo de la cour du roi Arthur",
-		Options: []discord.CommandOption{
-			{
-				Name:        queryParam,
-				Description: "Un mot clé pour affiner la recherche",
-				Type:        3, // https://discord.com/developers/docs/interactions/slash-commands#applicationcommandoptiontype
-				Required:    true,
+		kaamelottGifName: {
+			Name:        kaamelottGifName,
+			Description: "Une vidéo de la cour du roi Arthur",
+			Options: []discord.CommandOption{
+				{
+					Name:        queryParam,
+					Description: "Un mot clé pour affiner la recherche",
+					Type:        3, // https://discord.com/developers/docs/interactions/slash-commands#applicationcommandoptiontype
+					Required:    true,
+				},
 			},
 		},
-	},
-	oss117Name: {
-		Name:        oss117Name,
-		Description: "Une citation des films OSS117",
-		Options: []discord.CommandOption{
-			{
-				Name:        queryParam,
-				Description: "Un mot clé pour affiner la recherche",
-				Type:        3, // https://discord.com/developers/docs/interactions/slash-commands#applicationcommandoptiontype
-				Required:    true,
+		oss117Name: {
+			Name:        oss117Name,
+			Description: "Une citation des films OSS117",
+			Options: []discord.CommandOption{
+				{
+					Name:        queryParam,
+					Description: "Un mot clé pour affiner la recherche",
+					Type:        3, // https://discord.com/developers/docs/interactions/slash-commands#applicationcommandoptiontype
+					Required:    true,
+				},
 			},
 		},
-	},
-	officeName: {
-		Name:        officeName,
-		Description: "A citation from The Office",
-		Options: []discord.CommandOption{
-			{
-				Name:        queryParam,
-				Description: "A keyword to refine search",
-				Type:        3, // https://discord.com/developers/docs/interactions/slash-commands#applicationcommandoptiontype
-				Required:    true,
+		officeName: {
+			Name:        officeName,
+			Description: "A citation from The Office",
+			Options: []discord.CommandOption{
+				{
+					Name:        queryParam,
+					Description: "A keyword to refine search",
+					Type:        3, // https://discord.com/developers/docs/interactions/slash-commands#applicationcommandoptiontype
+					Required:    true,
+				},
 			},
 		},
-	},
-}
+	}
+	indexes = map[string]string{
+		kaamelottName:    kaamelottName,
+		kaamelottGifName: "kaamelott_gif",
+		oss117Name:       oss117Name,
+		officeName:       officeName,
+	}
+)
 
 // DiscordHandler handle discord request
 func (a App) DiscordHandler(ctx context.Context, webhook discord.InteractionRequest) (discord.InteractionResponse, func(context.Context) discord.InteractionResponse) {
@@ -117,7 +125,7 @@ func (a App) checkRequest(webhook discord.InteractionRequest) (string, error) {
 		return "", fmt.Errorf("unknown command `%s`", index)
 	}
 
-	return index, nil
+	return indexes[index], nil
 }
 
 func (a App) getQuery(webhook discord.InteractionRequest) string {
