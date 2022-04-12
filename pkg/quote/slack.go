@@ -48,7 +48,7 @@ func New(website string, searchApp search.App) App {
 }
 
 // SlackCommand handler
-func (a App) SlackCommand(ctx context.Context, payload slack.InteractivePayload) slack.Response {
+func (a App) SlackCommand(ctx context.Context, payload slack.SlashPayload) slack.Response {
 	if !a.searchApp.HasCollection(payload.Command) {
 		return slack.NewEphemeralMessage("unknown command")
 	}
@@ -57,8 +57,12 @@ func (a App) SlackCommand(ctx context.Context, payload slack.InteractivePayload)
 }
 
 // SlackInteract handler
-func (a App) SlackInteract(ctx context.Context, user string, actions []slack.InteractiveAction) slack.Response {
-	action := actions[0]
+func (a App) SlackInteract(ctx context.Context, payload slack.InteractivePayload) slack.Response {
+	if len(payload.Actions) == 0 {
+		return slack.NewEphemeralMessage("No action provided")
+	}
+
+	action := payload.Actions[0]
 	if action.ActionID == cancelValue {
 		return slack.NewEphemeralMessage("Ok, not now.")
 	}
@@ -69,7 +73,7 @@ func (a App) SlackInteract(ctx context.Context, user string, actions []slack.Int
 			return slack.NewEphemeralMessage(fmt.Sprintf("unable to find asked quote: %s", err))
 		}
 
-		return a.getQuoteResponse(quote, "", user)
+		return a.getQuoteResponse(quote, "", payload.User.ID)
 	}
 
 	if action.ActionID == nextValue {

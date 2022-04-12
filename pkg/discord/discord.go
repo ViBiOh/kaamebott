@@ -5,11 +5,15 @@ import (
 	"context"
 	"crypto/ed25519"
 	"encoding/hex"
+	"encoding/json"
 	"errors"
 	"flag"
 	"fmt"
 	"io"
+	"mime/multipart"
 	"net/http"
+	"net/textproto"
+	"os"
 
 	"github.com/ViBiOh/flags"
 	"github.com/ViBiOh/httputils/v4/pkg/httperror"
@@ -20,7 +24,7 @@ import (
 )
 
 // OnMessage handle message event
-type OnMessage func(context.Context, InteractionRequest) InteractionResponse
+type OnMessage func(context.Context, InteractionRequest) (InteractionResponse, func(context.Context) InteractionResponse)
 
 var discordRequest = request.New().URL("https://discord.com/api/v8")
 
@@ -136,5 +140,81 @@ func (a App) handleWebhook(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	httpjson.Write(w, http.StatusOK, a.handler(r.Context(), message))
+	response, asyncFn := a.handler(r.Context(), message)
+	httpjson.Write(w, http.StatusOK, response)
+
+	if asyncFn != nil {
+		go func() {
+			ctx := context.Background()
+			deferredResponse := asyncFn(ctx)
+
+			req := discordRequest.Method(http.MethodPatch).Path(fmt.Sprintf("/webhooks/%s/%s/messages/@original", a.applicationID, message.Token))
+
+			var resp *http.Response
+			var err error
+			if len(deferredResponse.Data.Attachments) > 0 {
+				resp, err = req.Multipart(ctx, writeMultipart(deferredResponse.Data))
+			} else {
+				resp, err = req.JSON(ctx, deferredResponse.Data)
+			}
+
+			if err != nil {
+				logger.Error("unable to send async response: %s", err)
+				return
+			}
+
+			if err = request.DiscardBody(resp.Body); err != nil {
+				logger.Error("unable to discard async body: %s", err)
+			}
+		}()
+	}
+}
+
+func writeMultipart(data InteractionDataResponse) func(*multipart.Writer) error {
+	return func(mw *multipart.Writer) error {
+		header := textproto.MIMEHeader{}
+		header.Set("Content-Disposition", `form-data; name="payload_json"`)
+		header.Set("Content-Type", "application/json")
+		partWriter, err := mw.CreatePart(header)
+		if err != nil {
+			return fmt.Errorf("unable to create payload part: %s", err)
+		}
+
+		if err = json.NewEncoder(partWriter).Encode(data); err != nil {
+			return fmt.Errorf("unable to encode payload part: %s", err)
+		}
+
+		for _, file := range data.Attachments {
+			if err = addAttachment(mw, file); err != nil {
+				return err
+			}
+		}
+
+		return nil
+	}
+}
+
+func addAttachment(mw *multipart.Writer, file Attachment) error {
+	partWriter, err := mw.CreateFormFile(fmt.Sprintf("files[%d]", file.ID), file.Filename)
+	if err != nil {
+		return fmt.Errorf("unable to create file part: %s", err)
+	}
+
+	var fileReader io.ReadCloser
+	fileReader, err = os.Open(file.filepath)
+	if err != nil {
+		return fmt.Errorf("unable to open file part: %s", err)
+	}
+
+	defer func() {
+		if closeErr := fileReader.Close(); closeErr != nil {
+			logger.Error("unable to close file part: %s", closeErr)
+		}
+	}()
+
+	if _, err = io.Copy(partWriter, fileReader); err != nil {
+		return fmt.Errorf("unable to copy file part: %s", err)
+	}
+
+	return nil
 }

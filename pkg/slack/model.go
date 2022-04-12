@@ -1,5 +1,7 @@
 package slack
 
+import "fmt"
+
 // EmptySection for not found
 var EmptySection = Section{}
 
@@ -108,8 +110,8 @@ type Response struct {
 	DeleteOriginal  bool    `json:"delete_original,omitempty"`
 }
 
-// InteractivePayload receives by a slash command
-type InteractivePayload struct {
+// SlashPayload receives by a slash command
+type SlashPayload struct {
 	ChannelID   string `json:"channel_id"`
 	Command     string `json:"command"`
 	ResponseURL string `json:"response_url"`
@@ -126,14 +128,22 @@ type InteractiveAction struct {
 	Value    string `json:"value,omitempty"`
 }
 
-// Interactive response from slack
-type Interactive struct {
+// InteractivePayload response from slack
+type InteractivePayload struct {
 	User struct {
 		ID string `json:"id"`
 	} `json:"user"`
+	Container struct {
+		ChannelID string `json:"channel_id"`
+	} `json:"container"`
 	Type        string              `json:"type"`
 	ResponseURL string              `json:"response_url"`
 	Actions     []InteractiveAction `json:"actions"`
+}
+
+// NewError creates ephemeral error response
+func NewError(err error) Response {
+	return NewEphemeralMessage(fmt.Sprintf("Oh! It's broken 😱. Reason is: %s", err))
 }
 
 // NewEphemeralMessage creates ephemeral text response

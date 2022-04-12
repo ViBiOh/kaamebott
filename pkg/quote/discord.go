@@ -74,33 +74,33 @@ var Commands = map[string]discord.Command{
 }
 
 // DiscordHandler handle discord request
-func (a App) DiscordHandler(ctx context.Context, webhook discord.InteractionRequest) discord.InteractionResponse {
+func (a App) DiscordHandler(ctx context.Context, webhook discord.InteractionRequest) (discord.InteractionResponse, func(context.Context) discord.InteractionResponse) {
 	index, err := a.checkRequest(webhook)
 	if err != nil {
-		return discord.NewEphemeral(false, err.Error())
+		return discord.NewEphemeral(false, err.Error()), nil
 	}
 
 	queryValue := a.getQuery(webhook)
 	switch strings.Count(queryValue, contentSeparator) {
 	case 0:
-		return a.handleSearch(ctx, index, queryValue, "")
+		return a.handleSearch(ctx, index, queryValue, ""), nil
 	case 1:
 		var last string
 		lastIndex := strings.LastIndexAny(queryValue, contentSeparator)
 		last = queryValue[lastIndex+1:]
 		queryValue = queryValue[:lastIndex]
-		return a.handleSearch(ctx, index, queryValue, last)
+		return a.handleSearch(ctx, index, queryValue, last), nil
 	case 2:
 		quote, err := a.searchApp.GetByID(ctx, index, strings.Trim(queryValue, contentSeparator))
 		if err != nil {
-			return discord.NewEphemeral(true, err.Error())
+			return discord.NewEphemeral(true, err.Error()), nil
 		}
 
-		return a.quoteResponse(webhook.Member.User.ID, quote)
+		return a.quoteResponse(webhook.Member.User.ID, quote), nil
 	case 3:
-		return discord.NewEphemeral(true, "Ok, not now.")
+		return discord.NewEphemeral(true, "Ok, not now."), nil
 	default:
-		return discord.NewEphemeral(true, "Unknown behavior.")
+		return discord.NewEphemeral(true, "Unknown behavior."), nil
 	}
 }
 
@@ -149,7 +149,7 @@ func (a App) handleSearch(ctx context.Context, index, query, last string) discor
 }
 
 func (a App) interactiveResponse(quote model.Quote, replace bool, recherche string) discord.InteractionResponse {
-	webhookType := discord.ChannelMessageWithSourceCallback
+	webhookType := discord.ChannelMessageWithSource
 	if replace {
 		webhookType = discord.UpdateMessageCallback
 	}
@@ -172,14 +172,7 @@ func (a App) interactiveResponse(quote model.Quote, replace bool, recherche stri
 }
 
 func (a App) quoteResponse(user string, quote model.Quote) discord.InteractionResponse {
-	instance := discord.InteractionResponse{Type: discord.ChannelMessageWithSourceCallback}
-	instance.Data.Content = fmt.Sprintf("<@!%s> %s", user, i18n[quote.Language]["title"])
-	instance.Data.AllowedMentions = discord.AllowedMention{
-		Parse: []string{},
-	}
-	instance.Data.Embeds = []discord.Embed{a.getQuoteEmbed(quote)}
-
-	return instance
+	return discord.NewResponse(discord.ChannelMessageWithSource, fmt.Sprintf("<@!%s> %s", user, i18n[quote.Language]["title"])).AddEmbed(a.getQuoteEmbed(quote))
 }
 
 func (a App) getQuoteEmbed(quote model.Quote) discord.Embed {
