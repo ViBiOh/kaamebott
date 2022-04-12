@@ -103,7 +103,7 @@ func (a App) getQuote(ctx context.Context, index, text string, last string) (mod
 func (a App) getQuoteBlock(ctx context.Context, index, text string, last string) slack.Response {
 	quote, err := a.getQuote(ctx, index, text, last)
 	if err != nil {
-		return slack.NewEphemeralMessage(fmt.Sprintf("Oh, it's broken 😱. Reason: %s", err))
+		return slack.NewError(err)
 	}
 
 	return a.getQuoteResponse(quote, text, "")
@@ -112,7 +112,10 @@ func (a App) getQuoteBlock(ctx context.Context, index, text string, last string)
 func (a App) getQuoteResponse(quote model.Quote, query, user string) slack.Response {
 	content := a.getContentBlock(quote)
 	if content == slack.EmptySection {
-		return slack.NewEphemeralMessage(fmt.Sprintf("%s `%s`", i18n[quote.Language]["not_now"], query))
+		if len(quote.Language) == 0 {
+			quote.Language = "english"
+		}
+		return slack.NewEphemeralMessage(fmt.Sprintf("%s `%s`", i18n[quote.Language]["not_found"], query))
 	}
 
 	if len(user) == 0 {
@@ -141,7 +144,7 @@ func (a App) getContentBlock(quote model.Quote) slack.Block {
 	switch quote.Collection {
 	case "kaamelott":
 		return a.getKaamelottBlock(quote)
-	case "kaamelottgif":
+	case "kaamelott_gif":
 		return a.getKaamelottGifBlock(quote)
 	case "oss117":
 		return a.getOss117Block(quote)
