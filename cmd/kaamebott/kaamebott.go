@@ -67,7 +67,7 @@ func main() {
 	defer tracerApp.Close()
 	request.AddTracerToDefaultClient(tracerApp.GetProvider())
 
-	quoteDB, err := db.New(dbConfig, tracerApp)
+	quoteDB, err := db.New(dbConfig, tracerApp.GetTracer("database"))
 	logger.Fatal(err)
 	defer quoteDB.Close()
 
@@ -76,7 +76,7 @@ func main() {
 	prometheusApp := prometheus.New(prometheusConfig)
 	healthApp := health.New(healthConfig, quoteDB.Ping)
 
-	rendererApp, err := renderer.New(rendererConfig, content, search.FuncMap, tracerApp)
+	rendererApp, err := renderer.New(rendererConfig, content, search.FuncMap, tracerApp.GetTracer("renderer"))
 	logger.Fatal(err)
 
 	website := rendererApp.PublicURL("")
