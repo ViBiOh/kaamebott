@@ -7,6 +7,8 @@ import (
 	"os"
 	"strings"
 
+	"github.com/ViBiOh/ChatPotte/discord"
+	"github.com/ViBiOh/ChatPotte/slack"
 	"github.com/ViBiOh/flags"
 	"github.com/ViBiOh/httputils/v4/pkg/alcotest"
 	"github.com/ViBiOh/httputils/v4/pkg/cors"
@@ -21,10 +23,8 @@ import (
 	"github.com/ViBiOh/httputils/v4/pkg/request"
 	"github.com/ViBiOh/httputils/v4/pkg/server"
 	"github.com/ViBiOh/httputils/v4/pkg/tracer"
-	"github.com/ViBiOh/kaamebott/pkg/discord"
 	"github.com/ViBiOh/kaamebott/pkg/quote"
 	"github.com/ViBiOh/kaamebott/pkg/search"
-	"github.com/ViBiOh/kaamebott/pkg/slack"
 )
 
 //go:embed templates static

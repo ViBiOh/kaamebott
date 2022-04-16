@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/ViBiOh/kaamebott/pkg/discord"
+	"github.com/ViBiOh/ChatPotte/discord"
 	"github.com/ViBiOh/kaamebott/pkg/model"
 	"github.com/ViBiOh/kaamebott/pkg/search"
 )
@@ -22,65 +22,12 @@ const (
 	officeName             = "office"
 )
 
-var (
-	// Commands configuration
-	Commands = map[string]discord.Command{
-		kaamelottName: {
-			Name:        kaamelottName,
-			Description: "Une citation de la cour du roi Arthur",
-			Options: []discord.CommandOption{
-				{
-					Name:        queryParam,
-					Description: "Un mot clé pour affiner la recherche",
-					Type:        3, // https://discord.com/developers/docs/interactions/slash-commands#applicationcommandoptiontype
-					Required:    true,
-				},
-			},
-		},
-		kaamelottGifName: {
-			Name:        kaamelottGifName,
-			Description: "Une vidéo de la cour du roi Arthur",
-			Options: []discord.CommandOption{
-				{
-					Name:        queryParam,
-					Description: "Un mot clé pour affiner la recherche",
-					Type:        3, // https://discord.com/developers/docs/interactions/slash-commands#applicationcommandoptiontype
-					Required:    true,
-				},
-			},
-		},
-		oss117Name: {
-			Name:        oss117Name,
-			Description: "Une citation des films OSS117",
-			Options: []discord.CommandOption{
-				{
-					Name:        queryParam,
-					Description: "Un mot clé pour affiner la recherche",
-					Type:        3, // https://discord.com/developers/docs/interactions/slash-commands#applicationcommandoptiontype
-					Required:    true,
-				},
-			},
-		},
-		officeName: {
-			Name:        officeName,
-			Description: "A citation from The Office",
-			Options: []discord.CommandOption{
-				{
-					Name:        queryParam,
-					Description: "A keyword to refine search",
-					Type:        3, // https://discord.com/developers/docs/interactions/slash-commands#applicationcommandoptiontype
-					Required:    true,
-				},
-			},
-		},
-	}
-	indexes = map[string]string{
-		kaamelottName:    kaamelottName,
-		kaamelottGifName: kaamelottGifCollection,
-		oss117Name:       oss117Name,
-		officeName:       officeName,
-	}
-)
+var indexes = map[string]string{
+	kaamelottName:    kaamelottName,
+	kaamelottGifName: kaamelottGifCollection,
+	oss117Name:       oss117Name,
+	officeName:       officeName,
+}
 
 // DiscordHandler handle discord request
 func (a App) DiscordHandler(ctx context.Context, webhook discord.InteractionRequest) (discord.InteractionResponse, func(context.Context) discord.InteractionResponse) {
@@ -114,19 +61,20 @@ func (a App) DiscordHandler(ctx context.Context, webhook discord.InteractionRequ
 }
 
 func (a App) checkRequest(webhook discord.InteractionRequest) (string, error) {
-	var index string
+	var command string
 	switch webhook.Type {
 	case discord.MessageComponentInteraction:
-		index = webhook.Message.Interaction.Name
+		command = webhook.Message.Interaction.Name
 	case discord.ApplicationCommandInteraction:
-		index = webhook.Data.Name
+		command = webhook.Data.Name
 	}
 
-	if _, ok := Commands[index]; !ok {
-		return "", fmt.Errorf("unknown command `%s`", index)
+	index, ok := indexes[command]
+	if !ok {
+		return "", fmt.Errorf("unknown command `%s`", command)
 	}
 
-	return indexes[index], nil
+	return index, nil
 }
 
 func (a App) getQuery(webhook discord.InteractionRequest) string {

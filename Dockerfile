@@ -17,4 +17,3 @@ ARG TARGETOS
 ARG TARGETARCH
 
 COPY release/kaamebott_${TARGETOS}_${TARGETARCH} /kaamebott
-COPY release/discord_${TARGETOS}_${TARGETARCH} /discord

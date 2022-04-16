@@ -24,14 +24,63 @@ spec:
   values:
     nameOverride: kaamebott-discord
     image:
-      name: vibioh/kaamebott
-      tag: "202204160849" # {"$imagepolicy": "default:flux-kaamebott-api:tag"}
-    command:
-    - /discord
+      name: vibioh/discord_configure
+      tag: "latest"
     config:
       DISCORD_APPLICATION_ID: "882376778943971349"
       DISCORD_PUBLIC_KEY: d3acdcf3d7dc08c1d32714b3a51b0db4e40041059e075b274d94326011c20a31
       DISCORD_LOGGER_JSON: "true"
+      DISCORD_COMMANDS: |
+        {
+          "kaamelott": {
+            "name": "kaamelott",
+            "description": "Une citation de la cour du roi Arthur",
+            "options": [
+              {
+                "name": "recherche",
+                "description": "Un mot clé pour affiner la recherche",
+                "type": 3,
+                "required": true
+              }
+            ]
+          },
+          "kaamelottgif": {
+            "name": "kaamelottgif",
+            "description": "Une vidéo de la cour du roi Arthur",
+            "options": [
+              {
+                "name": "recherche",
+                "description": "Un mot clé pour affiner la recherche",
+                "type": 3,
+                "required": true
+              }
+            ]
+          },
+          "oss117": {
+            "name": "oss117",
+            "description": "Une citation des films OSS117",
+            "options": [
+              {
+                "name": "recherche",
+                "description": "Un mot clé pour affiner la recherche",
+                "type": 3,
+                "required": true
+              }
+            ]
+          },
+          "office": {
+            "name": "office",
+            "description": "A citation from The Office",
+            "options": [
+              {
+                "name": "recherche",
+                "description": "A keyword to refine search",
+                "type": 3,
+                "required": true
+              }
+            ]
+          }
+        }
     secrets:
       DISCORD_CLIENT_ID: AgB134oOTOcPlfQoZH9JpD7S1j4a+68FPO7jCXrc600Fl7nvPB4IbXHj0TsutjLuiUwxoNUu01qBcvmdOcU8By14/tSWno2tYVjG1Q62bxgEtbJt+806B4eGv8zpQn/ZEKL5KIOBNJjgSrtUfJN02xz0TD4RVExD4dDzXkNJYMteF5zypq0VtSiquX/SEgjnMmlo+ntR81l3W91sZTlLYhevtoMtaohpalKQ06q2FITy4vXbid21tSdPtrqAsCquRjRYYZ1Af7J+jw7qEWCSs8EX5TUtCw1z35yR1wPvtalVQKdk2YDqRl4S/lzUcLZ20MELRl/odDSph6PpqSedLmBYZVFshBAvKcTyNyB+xW4S/2P8N/Z2+JxkRSPCqblr4dLNLqtvSpeD+H3ZeYcwCJpSGmGnyMo7XoZ4YSrjeg2Btpk2Dk/7hpi4g1P+/PdP9Wp8g9DtUh3KuAEBwMV5HpuOCipH4fGvWEM2c++X4gzvf6jz08pi4ekAGoSqg7pew2aijX+E7C1hY9XpV1M9AodttzMo+AdpsRWoG4RIrRxT4Af83hzO6P2zDCkhAnI/UQXwmYaw9svksIntMzjENPPAjVNtk8zFir95oaKYc+Nqz02uNFpmeI04XQEZEer7DDokUdWhwUrKyN1KXE7uXLM66H4WS2xc1SrikuL+VsdrmXbRwFqB6MuhTo+5M/eJch93JKAUqoEfUvNFOjD3utUyRlc=
       DISCORD_CLIENT_SECRET: AgDHK/u++oCOQkKvk9AyFyBwhkRsWOM3YU2rfF3ExGsG36iCr+ZzrS+56fchcSBgNC6zROLWAAg9R4tZfxQCNLMWDKgsBbCw3CUT22/gpYYOWv1/U289xLZeE+18j9TDDiEt1ww+ZO6KvcyIoVp1PPznplba9brQXMOpJKfXHpav2pGlrPxvmIR1deuGr3SlgOMduVSPYw8TbFn6b/QUBhXErK0Ih39/rTO65waSGJCU0prUeKMMfXuaHlaRtMlS2tprscDcBEaVv7OhCCeTpvOdXJb8DDtx7dSnJPeAVaUZsnJi3Wldtu6PaYTVIi+wV/ryBeUjgIuGhrUbhZEy185BcrbaS0678rX5BuAnB9vZdLwQ3E1ePJcoy0oPb7EFOAwZpJvPcg/Lx/BlXMMuxp1ZHt7/NtygULbc5liGg9qQMe03ss2wc9C6+JCpRF/kyjvuOX5nLdeDlcybT7E+cHFuiocLhLmbIH6HqlMwC1PpMLqjwQl6boHrP4ghSWa74n6zzX7d2SZZciB1qHNfcT07z11J5IyrQZ8VMsZhpDoVz+9K1J676GcpyPEAmEr4JNEX1EC28QIQsTzO3A369UJ30o1rcRvar+m+J7Xjg67KttFuuG5lHVWEB/uzlAm78Q4FSCIO3sH2xU+ZYjbeY3L/Jwz8PgHWYFwbt9NhNTj9qd+UU9Wj7yZ2+hCw7hNYBfX4OCLlE6zEUhZRkXLi4WUJJNEPemhMWkLFyOKvdWbeug==

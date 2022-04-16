@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/ViBiOh/ChatPotte/slack"
 	"github.com/ViBiOh/kaamebott/pkg/model"
 	"github.com/ViBiOh/kaamebott/pkg/search"
-	"github.com/ViBiOh/kaamebott/pkg/slack"
 )
 
 const (
