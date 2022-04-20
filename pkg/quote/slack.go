@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/ViBiOh/ChatPotte/slack"
+	httpmodel "github.com/ViBiOh/httputils/v4/pkg/model"
 	"github.com/ViBiOh/kaamebott/pkg/model"
 	"github.com/ViBiOh/kaamebott/pkg/search"
 )
@@ -35,8 +36,8 @@ var i18n map[string]map[string]string = map[string]map[string]string{
 
 // App of package
 type App struct {
-	searchApp search.App
 	website   string
+	searchApp search.App
 }
 
 // New creates new App from Config
@@ -111,7 +112,7 @@ func (a App) getQuoteBlock(ctx context.Context, index, text string, last string)
 
 func (a App) getQuoteResponse(quote model.Quote, query, user string) slack.Response {
 	content := a.getContentBlock(quote)
-	if content == slack.EmptySection {
+	if httpmodel.IsNil(content) {
 		if len(quote.Language) == 0 {
 			quote.Language = "english"
 		}
@@ -134,7 +135,7 @@ func (a App) getQuoteResponse(quote model.Quote, query, user string) slack.Respo
 		ResponseType:   "in_channel",
 		DeleteOriginal: true,
 		Blocks: []slack.Block{
-			slack.NewSection(slack.NewText(fmt.Sprintf("<@%s> %s", user, i18n[quote.Language]["title"])), nil),
+			slack.NewSection(slack.NewText(fmt.Sprintf("<@%s> %s", user, i18n[quote.Language]["title"]))),
 			content,
 		},
 	}
@@ -151,7 +152,7 @@ func (a App) getContentBlock(quote model.Quote) slack.Block {
 	case "office":
 		return a.getOfficeBlock(quote)
 	default:
-		return slack.EmptySection
+		return nil
 	}
 }
 
@@ -159,7 +160,7 @@ func (a App) getKaamelottBlock(quote model.Quote) slack.Block {
 	text := slack.NewText(fmt.Sprintf("*<%s|%s>*\n\n_%s_ %s", quote.URL, quote.Context, quote.Character, quote.Value))
 	accessory := slack.NewAccessory(fmt.Sprintf("%s/images/kaamelott.png", a.website), "kaamelott")
 
-	return slack.NewSection(text, accessory)
+	return slack.NewSection(text).WithAccessory(accessory)
 }
 
 func (a App) getKaamelottGifBlock(quote model.Quote) slack.Block {
@@ -170,12 +171,12 @@ func (a App) getOss117Block(quote model.Quote) slack.Block {
 	text := slack.NewText(fmt.Sprintf("*%s*\n\n_%s_ %s", quote.Context, quote.Character, quote.Value))
 	accessory := slack.NewAccessory(fmt.Sprintf("%s/images/oss117.png", a.website), "oss117")
 
-	return slack.NewSection(text, accessory)
+	return slack.NewSection(text).WithAccessory(accessory)
 }
 
 func (a App) getOfficeBlock(quote model.Quote) slack.Block {
 	text := slack.NewText(fmt.Sprintf("*%s*\n\n%s", quote.Context, quote.Value))
 	accessory := slack.NewAccessory(fmt.Sprintf("%s/images/office.jpg", a.website), "office")
 
-	return slack.NewSection(text, accessory)
+	return slack.NewSection(text).WithAccessory(accessory)
 }

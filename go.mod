@@ -3,7 +3,7 @@ module github.com/ViBiOh/kaamebott
 go 1.18
 
 require (
-	github.com/ViBiOh/ChatPotte v0.0.3
+	github.com/ViBiOh/ChatPotte v0.0.7
 	github.com/ViBiOh/flags v1.0.0
 	github.com/ViBiOh/httputils/v4 v4.41.0
 	github.com/jackc/pgx/v4 v4.15.0
