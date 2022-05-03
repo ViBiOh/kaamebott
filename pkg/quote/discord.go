@@ -36,27 +36,33 @@ func (a App) DiscordHandler(ctx context.Context, webhook discord.InteractionRequ
 		return discord.NewEphemeral(false, err.Error()), nil
 	}
 
-	queryValue := a.getQuery(webhook)
-	switch strings.Count(queryValue, contentSeparator) {
-	case 0:
-		return a.handleSearch(ctx, index, queryValue, ""), nil
-	case 1:
-		var last string
-		lastIndex := strings.LastIndexAny(queryValue, contentSeparator)
-		last = queryValue[lastIndex+1:]
-		queryValue = queryValue[:lastIndex]
-		return a.handleSearch(ctx, index, queryValue, last), nil
-	case 2:
-		quote, err := a.searchApp.GetByID(ctx, index, strings.Trim(queryValue, contentSeparator))
+	query := a.getQuery(webhook)
+	parts := strings.SplitN(query, contentSeparator, 3)
+
+	switch parts[0] {
+	case nextValue:
+		if len(parts) != 3 {
+			return discord.NewError(true, errors.New("unable to part next value")), nil
+		}
+		return a.handleSearch(ctx, index, parts[1], parts[2]), nil
+
+	case sendValue:
+		if len(parts) != 2 {
+			return discord.NewError(true, errors.New("unable to part send value")), nil
+		}
+
+		quote, err := a.searchApp.GetByID(ctx, index, parts[1])
 		if err != nil {
-			return discord.NewEphemeral(true, err.Error()), nil
+			return discord.NewError(true, err), nil
 		}
 
 		return a.quoteResponse(webhook.Member.User.ID, quote), nil
-	case 3:
+
+	case cancelValue:
 		return discord.NewEphemeral(true, "Ok, not now."), nil
+
 	default:
-		return discord.NewEphemeral(true, "Unknown behavior."), nil
+		return a.handleSearch(ctx, index, query, ""), nil
 	}
 }
 
@@ -111,21 +117,15 @@ func (a App) interactiveResponse(quote model.Quote, replace bool, recherche stri
 		webhookType = discord.UpdateMessageCallback
 	}
 
-	instance := discord.InteractionResponse{Type: webhookType}
-	instance.Data.Flags = discord.EphemeralMessage
-	instance.Data.Embeds = []discord.Embed{a.getQuoteEmbed(quote)}
-	instance.Data.Components = []discord.Component{
-		{
+	return discord.NewResponse(webhookType, "").Ephemeral().AddEmbed(a.getQuoteEmbed(quote)).AddComponent(
+		discord.Component{
 			Type: discord.ActionRowType,
 			Components: []discord.Component{
-				discord.NewButton(discord.PrimaryButton, i18n[quote.Language][sendValue], fmt.Sprintf("%s%s%s", contentSeparator, quote.ID, contentSeparator)),
-				discord.NewButton(discord.SecondaryButton, i18n[quote.Language][nextValue], fmt.Sprintf("%s%s%s", recherche, contentSeparator, quote.ID)),
-				discord.NewButton(discord.DangerButton, i18n[quote.Language][cancelValue], fmt.Sprintf("%s%s%s", contentSeparator, contentSeparator, contentSeparator)),
+				discord.NewButton(discord.PrimaryButton, i18n[quote.Language][sendValue], strings.Join([]string{sendValue, quote.ID}, contentSeparator)),
+				discord.NewButton(discord.SecondaryButton, i18n[quote.Language][nextValue], strings.Join([]string{nextValue, recherche, quote.ID}, contentSeparator)),
+				discord.NewButton(discord.DangerButton, i18n[quote.Language][cancelValue], cancelValue),
 			},
-		},
-	}
-
-	return instance
+		})
 }
 
 func (a App) quoteResponse(user string, quote model.Quote) discord.InteractionResponse {
