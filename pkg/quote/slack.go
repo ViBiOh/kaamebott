@@ -23,14 +23,14 @@ var i18n map[string]map[string]string = map[string]map[string]string{
 		nextValue:   "Une autre ?",
 		sendValue:   "Envoyer",
 		"not_found": "On n'a rien trouvé pour",
-		"title":     "partage une petite _quote_",
+		"title":     "Posté par ",
 	},
 	"english": {
 		cancelValue: "Cancel",
 		nextValue:   "Another?",
 		sendValue:   "Send",
 		"not_found": "We didn't find anything for",
-		"title":     "shares a _quote_",
+		"title":     "Posted by ",
 	},
 }
 
@@ -123,7 +123,7 @@ func (a App) getQuoteResponse(quote model.Quote, query, user string) slack.Respo
 		return slack.NewEphemeralMessage("").AddBlock(content).AddBlock(slack.NewActions(quote.Collection, slack.NewButtonElement(i18n[quote.Language][cancelValue], cancelValue, "", "danger"), slack.NewButtonElement(i18n[quote.Language][nextValue], nextValue, fmt.Sprintf("%s@%s", query, quote.ID), ""), slack.NewButtonElement(i18n[quote.Language][sendValue], sendValue, quote.ID, "primary")))
 	}
 
-	return slack.NewResponse("").WithDeleteOriginal().AddBlock(slack.NewSection(slack.NewText(fmt.Sprintf("<@%s> %s", user, i18n[quote.Language]["title"])))).AddBlock(content)
+	return slack.NewResponse("").WithDeleteOriginal().AddBlock(content).AddBlock(slack.NewContext().AddElement(slack.NewText(fmt.Sprintf("%s <@%s>", i18n[quote.Language]["title"], user))))
 }
 
 func (a App) getContentBlock(quote model.Quote) slack.Block {
