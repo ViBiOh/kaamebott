@@ -5,7 +5,7 @@ go 1.18
 require (
 	github.com/ViBiOh/ChatPotte v0.0.18
 	github.com/ViBiOh/flags v1.0.0
-	github.com/ViBiOh/httputils/v4 v4.41.5
+	github.com/ViBiOh/httputils/v4 v4.42.0
 	github.com/jackc/pgx/v4 v4.16.1
 	golang.org/x/text v0.3.7
 )
