@@ -3,9 +3,9 @@ module github.com/ViBiOh/kaamebott
 go 1.18
 
 require (
-	github.com/ViBiOh/ChatPotte v0.0.21
+	github.com/ViBiOh/ChatPotte v0.0.22
 	github.com/ViBiOh/flags v1.0.0
-	github.com/ViBiOh/httputils/v4 v4.42.2
+	github.com/ViBiOh/httputils/v4 v4.43.0
 	github.com/jackc/pgx/v4 v4.16.1
 	golang.org/x/text v0.3.7
 )
@@ -30,8 +30,8 @@ require (
 	github.com/prometheus/client_model v0.2.0 // indirect
 	github.com/prometheus/common v0.34.0 // indirect
 	github.com/prometheus/procfs v0.7.3 // indirect
-	github.com/tdewolff/minify/v2 v2.11.7 // indirect
-	github.com/tdewolff/parse/v2 v2.5.32 // indirect
+	github.com/tdewolff/minify/v2 v2.11.9 // indirect
+	github.com/tdewolff/parse/v2 v2.5.33 // indirect
 	go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.32.0 // indirect
 	go.opentelemetry.io/otel v1.7.0 // indirect
 	go.opentelemetry.io/otel/exporters/jaeger v1.7.0 // indirect
