@@ -80,12 +80,12 @@ Usage of kaamebott:
         [discord] Public Key {KAAMEBOTT_DISCORD_PUBLIC_KEY}
   -frameOptions string
         [owasp] X-Frame-Options {KAAMEBOTT_FRAME_OPTIONS} (default "deny")
-  -graceDuration string
-        [http] Grace duration when SIGTERM received {KAAMEBOTT_GRACE_DURATION} (default "30s")
+  -graceDuration duration
+        [http] Grace duration when SIGTERM received {KAAMEBOTT_GRACE_DURATION} (default 30s)
   -hsts
         [owasp] Indicate Strict Transport Security {KAAMEBOTT_HSTS} (default true)
-  -idleTimeout string
-        [server] Idle Timeout {KAAMEBOTT_IDLE_TIMEOUT} (default "2m")
+  -idleTimeout duration
+        [server] Idle Timeout {KAAMEBOTT_IDLE_TIMEOUT} (default 2m0s)
   -key string
         [server] Key file {KAAMEBOTT_KEY}
   -loggerJson
@@ -112,28 +112,28 @@ Usage of kaamebott:
         [prometheus] Certificate file {KAAMEBOTT_PROMETHEUS_CERT}
   -prometheusGzip
         [prometheus] Enable gzip compression of metrics output {KAAMEBOTT_PROMETHEUS_GZIP}
-  -prometheusIdleTimeout string
-        [prometheus] Idle Timeout {KAAMEBOTT_PROMETHEUS_IDLE_TIMEOUT} (default "10s")
+  -prometheusIdleTimeout duration
+        [prometheus] Idle Timeout {KAAMEBOTT_PROMETHEUS_IDLE_TIMEOUT} (default 10s)
   -prometheusIgnore string
         [prometheus] Ignored path prefixes for metrics, comma separated {KAAMEBOTT_PROMETHEUS_IGNORE}
   -prometheusKey string
         [prometheus] Key file {KAAMEBOTT_PROMETHEUS_KEY}
   -prometheusPort uint
         [prometheus] Listen port (0 to disable) {KAAMEBOTT_PROMETHEUS_PORT} (default 9090)
-  -prometheusReadTimeout string
-        [prometheus] Read Timeout {KAAMEBOTT_PROMETHEUS_READ_TIMEOUT} (default "5s")
-  -prometheusShutdownTimeout string
-        [prometheus] Shutdown Timeout {KAAMEBOTT_PROMETHEUS_SHUTDOWN_TIMEOUT} (default "5s")
-  -prometheusWriteTimeout string
-        [prometheus] Write Timeout {KAAMEBOTT_PROMETHEUS_WRITE_TIMEOUT} (default "10s")
+  -prometheusReadTimeout duration
+        [prometheus] Read Timeout {KAAMEBOTT_PROMETHEUS_READ_TIMEOUT} (default 5s)
+  -prometheusShutdownTimeout duration
+        [prometheus] Shutdown Timeout {KAAMEBOTT_PROMETHEUS_SHUTDOWN_TIMEOUT} (default 5s)
+  -prometheusWriteTimeout duration
+        [prometheus] Write Timeout {KAAMEBOTT_PROMETHEUS_WRITE_TIMEOUT} (default 10s)
   -publicURL string
         Public URL {KAAMEBOTT_PUBLIC_URL} (default "https://kaamebott.vibioh.fr")
-  -readTimeout string
-        [server] Read Timeout {KAAMEBOTT_READ_TIMEOUT} (default "5s")
+  -readTimeout duration
+        [server] Read Timeout {KAAMEBOTT_READ_TIMEOUT} (default 5s)
   -searchValue string
         [search] Value key {KAAMEBOTT_SEARCH_VALUE} (default "value")
-  -shutdownTimeout string
-        [server] Shutdown Timeout {KAAMEBOTT_SHUTDOWN_TIMEOUT} (default "10s")
+  -shutdownTimeout duration
+        [server] Shutdown Timeout {KAAMEBOTT_SHUTDOWN_TIMEOUT} (default 10s)
   -slackClientID string
         [slack] ClientID {KAAMEBOTT_SLACK_CLIENT_ID}
   -slackClientSecret string
@@ -150,6 +150,6 @@ Usage of kaamebott:
         [alcotest] URL to check {KAAMEBOTT_URL}
   -userAgent string
         [alcotest] User-Agent for check {KAAMEBOTT_USER_AGENT} (default "Alcotest")
-  -writeTimeout string
-        [server] Write Timeout {KAAMEBOTT_WRITE_TIMEOUT} (default "10s")
+  -writeTimeout duration
+        [server] Write Timeout {KAAMEBOTT_WRITE_TIMEOUT} (default 10s)
 ```
