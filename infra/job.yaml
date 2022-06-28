@@ -79,7 +79,7 @@ spec:
                 "required": true
               }
             ]
-          }
+          },
           "citation": {
             "name": "citation",
             "description": "Une citation de film en français",
