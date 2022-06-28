@@ -90,7 +90,7 @@ func (a App) SlackInteract(ctx context.Context, payload slack.InteractivePayload
 }
 
 func (a App) getQuote(ctx context.Context, index, text string, last string) (model.Quote, error) {
-	quote, err := a.searchApp.Search(ctx, index, text, last)
+	quote, err := a.searchApp.Search(ctx, index, strings.TrimSpace(text), last)
 	if err != nil && err == search.ErrNotFound {
 		quote, err = a.searchApp.Random(ctx, index)
 		if err != nil {
@@ -120,6 +120,10 @@ func (a App) getQuoteResponse(quote model.Quote, query, user string) slack.Respo
 	}
 
 	if len(user) == 0 {
+		if len(query) == 0 {
+			query = " "
+		}
+
 		return slack.NewEphemeralMessage("").AddBlock(content).AddBlock(slack.NewActions(quote.Collection, slack.NewButtonElement(i18n[quote.Language][cancelValue], cancelValue, "", "danger"), slack.NewButtonElement(i18n[quote.Language][nextValue], nextValue, fmt.Sprintf("%s@%s", query, quote.ID), ""), slack.NewButtonElement(i18n[quote.Language][sendValue], sendValue, quote.ID, "primary")))
 	}
 
