@@ -80,6 +80,18 @@ spec:
               }
             ]
           }
+          "citation": {
+            "name": "citation",
+            "description": "Une citation de film en français",
+            "options": [
+              {
+                "name": "recherche",
+                "description": "Un mot clé pour affiner la recherche",
+                "type": 3,
+                "required": true
+              }
+            ]
+          }
         }
     secrets:
       DISCORD_CLIENT_ID: AgClRErFp8BdlbKiSm3KJH2cTSxlI9v3Sp02dzvCS5rndv3MxuwwSMgwHsdd08VqDNnjsmo/YB+I62PWUOEqOQ3IDbiim5FaTDFCJpOSC9PyVzu857wZyGXsfPJg+hqV2yWCnuhyCmn+mwylhadlhGlZ+nyFdgyATFGH+Ylnik4Y7Ox9FDVLlpeHBc36Cj8S0IvDZkPfHP5FOX/6TkN/tmJsOtI+sTTMufjMH86J2M83etJBAz6lQ7JQ/I5Bar+S5SwRbmu7Di6kLQyH5fcSol76uHCPbdSQxh6cPLZuCbMhsGeizSwzgXGW3nKMgyr+VO64lnsE7I4Mdy7kIbF1ZCib5JwwEcMJJKgJvbgLU6RsuCekvmREVYEqzGjbk99gniXFDQ8mOLnvuROxzaruTdz82Ji0fCpZ0rL/YI20DarZlHC79ekpAm0/6BqBuwWDAtc7IhXJiNkKPCLIVnvdVnGiapTrdvs3hYdSwOdvufUHzVv06KGqB36yN++Ol3BfyHzetCm6Dzc+dYVI6X9CGR2r4G35PVWS0z+16QIMdKNLiJML6KeVBgW9LjTr6mr66nLpsspGEKySPDV6XOD17kMqfVo8Mz9Y82EeMUoqRQ7iQ8zNt1zjSwkU9WEX4hRsPIm5arTaOhIKZfX4rKm93iuTHZaCj2cgZiFUrM/tI+Fr/gaoKcKtVignadPls8KrNI7uMvkq+ld0v2MQogQs91Y8+R0=

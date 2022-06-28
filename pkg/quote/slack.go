@@ -136,6 +136,8 @@ func (a App) getContentBlock(quote model.Quote) slack.Block {
 		return a.getOss117Block(quote)
 	case "office":
 		return a.getOfficeBlock(quote)
+	case "films":
+		return a.getFilmBlock(quote)
 	default:
 		return nil
 	}
@@ -164,4 +166,10 @@ func (a App) getOfficeBlock(quote model.Quote) slack.Block {
 	accessory := slack.NewAccessory(fmt.Sprintf("%s/images/office.jpg", a.website), "office")
 
 	return slack.NewSection(text).WithAccessory(accessory)
+}
+
+func (a App) getFilmBlock(quote model.Quote) slack.Block {
+	text := slack.NewText(fmt.Sprintf("*%s*\n\n_%s_\n%s", quote.Context, quote.Character, quote.Value))
+
+	return slack.NewSection(text)
 }

@@ -31,6 +31,11 @@ features:
       description: Get a quote from The Office
       usage_hint: "[searched text]"
       should_escape: false
+    - command: /citation
+      url: https://kaamebott.vibioh.fr/slack/films
+      description: Get a quote from a movie in French
+      usage_hint: "[searched text]"
+      should_escape: false
 oauth_config:
   redirect_urls:
     - https://kaamebott.vibioh.fr/slack/oauth

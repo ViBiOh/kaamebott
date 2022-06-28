@@ -20,6 +20,8 @@ const (
 	kaamelottGifCollection = "kaamelott_gif"
 	oss117Name             = "oss117"
 	officeName             = "office"
+	filmsName              = "citation"
+	filmsCollection        = "films"
 )
 
 var indexes = map[string]string{
@@ -27,6 +29,7 @@ var indexes = map[string]string{
 	kaamelottGifName: kaamelottGifCollection,
 	oss117Name:       oss117Name,
 	officeName:       officeName,
+	filmsName:        filmsCollection,
 }
 
 // DiscordHandler handle discord request
@@ -142,6 +145,8 @@ func (a App) getQuoteEmbed(quote model.Quote) discord.Embed {
 		return a.getOss117Embeds(quote)
 	case officeName:
 		return a.getOfficeEmbeds(quote)
+	case filmsCollection:
+		return a.getFilmsEmbeds(quote)
 	default:
 		return discord.Embed{
 			Title:       "Error",
@@ -187,5 +192,15 @@ func (a App) getOfficeEmbeds(quote model.Quote) discord.Embed {
 		Title:       quote.Context,
 		Description: quote.Value,
 		Thumbnail:   discord.NewImage(fmt.Sprintf("%s/images/office.jpg", a.website)),
+	}
+}
+
+func (a App) getFilmsEmbeds(quote model.Quote) discord.Embed {
+	return discord.Embed{
+		Title:       quote.Context,
+		Description: quote.Value,
+		Fields: []discord.Field{
+			discord.NewField("Personnage(s)", quote.Character),
+		},
 	}
 }
