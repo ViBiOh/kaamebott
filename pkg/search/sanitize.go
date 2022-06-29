@@ -27,7 +27,7 @@ var (
 		"œ": "oe",
 	}
 	quotesChar   = regexp.MustCompile(`["'` + "`" + `](?m)`)
-	specialChars = regexp.MustCompile(`[^a-z0-9.\-/](?m)`)
+	specialChars = regexp.MustCompile(`[^a-z0-9.\-/ ](?m)`)
 
 	transformerPool = sync.Pool{
 		New: func() any {
