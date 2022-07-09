@@ -66,8 +66,6 @@ Usage of kaamebott:
         [db] Port {KAAMEBOTT_DB_PORT} (default 5432)
   -dbSslmode string
         [db] SSL Mode {KAAMEBOTT_DB_SSLMODE} (default "disable")
-  -dbTimeout uint
-        [db] Connect timeout {KAAMEBOTT_DB_TIMEOUT} (default 10)
   -dbUser string
         [db] User {KAAMEBOTT_DB_USER}
   -discordApplicationID string
