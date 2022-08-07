@@ -70,7 +70,7 @@ func (a App) searchQuote(ctx context.Context, collectionID uint64, language, que
 
 	words, err := getWords(query)
 	if err != nil {
-		return item, fmt.Errorf("unable to get words: %s", err)
+		return item, fmt.Errorf("get words: %s", err)
 	}
 
 	sqlQuery, sqlArgs := computeQuoteQuery(collectionID, language, last, words)

@@ -64,7 +64,7 @@ func New(config Config, dbApp db.App, rendererApp renderer.App) App {
 func (a App) getCollectionID(ctx context.Context, collection string) (uint64, string, error) {
 	collectionID, language, err := a.getCollection(ctx, collection)
 	if err != nil {
-		return 0, "", fmt.Errorf("unable to get collection: %s", err)
+		return 0, "", fmt.Errorf("get collection: %s", err)
 	}
 	if collectionID == 0 {
 		return 0, "", ErrIndexNotFound
@@ -76,7 +76,7 @@ func (a App) getCollectionID(ctx context.Context, collection string) (uint64, st
 func (a App) HasCollection(collection string) bool {
 	collectionID, _, err := a.getCollection(context.Background(), collection)
 	if err != nil {
-		logger.Error("unable to check if collection exists: %s", err)
+		logger.Error("check if collection exists: %s", err)
 	}
 	return collectionID != 0
 }

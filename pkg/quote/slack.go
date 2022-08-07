@@ -71,7 +71,7 @@ func (a App) SlackInteract(ctx context.Context, payload slack.InteractivePayload
 	if action.ActionID == sendValue {
 		quote, err := a.searchApp.GetByID(ctx, action.BlockID, action.Value)
 		if err != nil {
-			return slack.NewEphemeralMessage(fmt.Sprintf("unable to find asked quote: %s", err))
+			return slack.NewEphemeralMessage(fmt.Sprintf("find asked quote: %s", err))
 		}
 
 		return a.getQuoteResponse(quote, "", payload.User.ID)

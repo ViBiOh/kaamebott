@@ -45,13 +45,13 @@ func (a App) DiscordHandler(ctx context.Context, webhook discord.InteractionRequ
 	switch parts[0] {
 	case nextValue:
 		if len(parts) != 3 {
-			return discord.NewError(true, errors.New("unable to part next value")), nil
+			return discord.NewError(true, errors.New("part next value")), nil
 		}
 		return a.handleSearch(ctx, index, parts[1], parts[2]), nil
 
 	case sendValue:
 		if len(parts) != 2 {
-			return discord.NewError(true, errors.New("unable to part send value")), nil
+			return discord.NewError(true, errors.New("part send value")), nil
 		}
 
 		quote, err := a.searchApp.GetByID(ctx, index, parts[1])
@@ -150,7 +150,7 @@ func (a App) getQuoteEmbed(quote model.Quote) discord.Embed {
 	default:
 		return discord.Embed{
 			Title:       "Error",
-			Description: fmt.Sprintf("unable to render quote of collection `%s`", quote.Collection),
+			Description: fmt.Sprintf("render quote of collection `%s`", quote.Collection),
 		}
 	}
 }
