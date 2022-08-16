@@ -33,25 +33,25 @@ func main() {
 
 	quotes, collectionName, err := readQuotes(*inputFile)
 	if err != nil {
-		logger.Fatal(fmt.Errorf("read quotes: %s", err))
+		logger.Fatal(fmt.Errorf("read quotes: %w", err))
 	}
 
 	logger.Fatal(quoteDB.DoAtomic(context.Background(), func(ctx context.Context) error {
 		collectionID, err := getOrCreateCollection(ctx, quoteDB, collectionName, *language)
 		if err != nil {
-			return fmt.Errorf("get or create collection: %s", err)
+			return fmt.Errorf("get or create collection: %w", err)
 		}
 
 		if err := quoteDB.Exec(ctx, "DELETE FROM kaamebott.quote WHERE collection_id = $1", collectionID); err != nil {
-			return fmt.Errorf("delete collection: %s", err)
+			return fmt.Errorf("delete collection: %w", err)
 		}
 
 		if err := insertQuotes(ctx, quoteDB, collectionID, quotes); err != nil {
-			return fmt.Errorf("insert quotes: %s", err)
+			return fmt.Errorf("insert quotes: %w", err)
 		}
 
 		if err := quoteDB.Exec(ctx, fmt.Sprintf("UPDATE kaamebott.quote SET search_vector = to_tsvector('%s', id) || to_tsvector('%s', value) || to_tsvector('%s', character) || to_tsvector('%s', context) WHERE collection_id = $1;", *language, *language, *language, *language), collectionID); err != nil {
-			return fmt.Errorf("create search vector for quote: %s", err)
+			return fmt.Errorf("create search vector for quote: %w", err)
 		}
 
 		return nil
@@ -63,7 +63,7 @@ func main() {
 func readQuotes(filename string) ([]model.Quote, string, error) {
 	reader, err := os.OpenFile(filename, os.O_RDONLY, 0o600)
 	if err != nil {
-		return nil, "", fmt.Errorf("open file: %s", err)
+		return nil, "", fmt.Errorf("open file: %w", err)
 	}
 
 	defer func() {
@@ -74,7 +74,7 @@ func readQuotes(filename string) ([]model.Quote, string, error) {
 
 	var quotes []model.Quote
 	if err := json.NewDecoder(reader).Decode(&quotes); err != nil {
-		return nil, "", fmt.Errorf("load quotes: %s", err)
+		return nil, "", fmt.Errorf("load quotes: %w", err)
 	}
 
 	return quotes, path.Base(strings.TrimSuffix(reader.Name(), ".json")), nil
@@ -90,7 +90,7 @@ func getOrCreateCollection(ctx context.Context, quoteDB db.App, name, language s
 		}
 		return err
 	}, "SELECT id FROM kaamebott.collection WHERE name = $1", name); err != nil {
-		return collectionID, fmt.Errorf("get collection `%s`: %s", name, err)
+		return collectionID, fmt.Errorf("get collection `%s`: %w", name, err)
 	}
 
 	if collectionID != 0 {
@@ -99,7 +99,7 @@ func getOrCreateCollection(ctx context.Context, quoteDB db.App, name, language s
 
 	id, err := quoteDB.Create(ctx, "INSERT INTO kaamebott.collection (name, language) VALUES ($1, $2) RETURNING id", name, language)
 	if err != nil {
-		return collectionID, fmt.Errorf("create collection: %s", err)
+		return collectionID, fmt.Errorf("create collection: %w", err)
 	}
 
 	return id, nil

@@ -64,7 +64,7 @@ func getWords(query string) ([]string, error) {
 
 	sanitizedQuery, err := sanitizeName(query)
 	if err != nil {
-		return nil, fmt.Errorf("sanitize query: %s", err)
+		return nil, fmt.Errorf("sanitize query: %w", err)
 	}
 
 	var words []string
