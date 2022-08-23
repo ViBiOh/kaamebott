@@ -128,6 +128,16 @@ Usage of kaamebott:
         Public URL {KAAMEBOTT_PUBLIC_URL} (default "https://kaamebott.vibioh.fr")
   -readTimeout duration
         [server] Read Timeout {KAAMEBOTT_READ_TIMEOUT} (default 5s)
+  -redisAddress string
+        [redis] Redis Address (blank to disable) {KAAMEBOTT_REDIS_ADDRESS} (default "localhost:6379")
+  -redisAlias string
+        [redis] Connection alias, for metric {KAAMEBOTT_REDIS_ALIAS}
+  -redisDatabase int
+        [redis] Redis Database {KAAMEBOTT_REDIS_DATABASE}
+  -redisPassword string
+        [redis] Redis Password, if any {KAAMEBOTT_REDIS_PASSWORD}
+  -redisUsername string
+        [redis] Redis Username, if any {KAAMEBOTT_REDIS_USERNAME}
   -searchValue string
         [search] Value key {KAAMEBOTT_SEARCH_VALUE} (default "value")
   -shutdownTimeout duration

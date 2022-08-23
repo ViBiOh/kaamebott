@@ -7,8 +7,10 @@ import (
 
 	"github.com/ViBiOh/ChatPotte/slack"
 	httpmodel "github.com/ViBiOh/httputils/v4/pkg/model"
+	"github.com/ViBiOh/httputils/v4/pkg/redis"
 	"github.com/ViBiOh/kaamebott/pkg/model"
 	"github.com/ViBiOh/kaamebott/pkg/search"
+	"go.opentelemetry.io/otel/trace"
 )
 
 const (
@@ -37,14 +39,18 @@ var i18n map[string]map[string]string = map[string]map[string]string{
 // App of package
 type App struct {
 	website   string
+	tracer    trace.Tracer
 	searchApp search.App
+	redisApp  redis.App
 }
 
 // New creates new App from Config
-func New(website string, searchApp search.App) App {
+func New(website string, searchApp search.App, redisApp redis.App, tracer trace.Tracer) App {
 	return App{
 		website:   website,
+		tracer:    tracer,
 		searchApp: searchApp,
+		redisApp:  redisApp,
 	}
 }
 

@@ -2,15 +2,17 @@ package quote
 
 import (
 	"context"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"strings"
+	"time"
 
 	"github.com/ViBiOh/ChatPotte/discord"
-	"github.com/ViBiOh/httputils/v4/pkg/logger"
+	"github.com/ViBiOh/httputils/v4/pkg/sha"
+	"github.com/ViBiOh/httputils/v4/pkg/tracer"
 	"github.com/ViBiOh/kaamebott/pkg/model"
 	"github.com/ViBiOh/kaamebott/pkg/search"
+	"github.com/ViBiOh/kaamebott/pkg/version"
 )
 
 const (
@@ -36,27 +38,25 @@ var indexes = map[string]string{
 
 // DiscordHandler handle discord request
 func (a App) DiscordHandler(ctx context.Context, webhook discord.InteractionRequest) (discord.InteractionResponse, func(context.Context) discord.InteractionResponse) {
+	ctx, end := tracer.StartSpan(ctx, a.tracer, "DiscordHandler")
+	defer end()
+
 	index, err := a.checkRequest(webhook)
 	if err != nil {
 		return discord.NewEphemeral(false, err.Error()), nil
 	}
 
-	query := a.getQuery(webhook)
-	parts := strings.SplitN(query, contentSeparator, 3)
+	action, query, next, err := a.getQuery(ctx, webhook)
+	if err != nil {
+		return discord.NewEphemeral(false, err.Error()), nil
+	}
 
-	switch parts[0] {
+	switch action {
 	case nextValue:
-		if len(parts) != 3 {
-			return discord.NewError(true, errors.New("part next value")), nil
-		}
-		return a.handleSearch(ctx, index, parts[1], parts[2]), nil
+		return a.handleSearch(ctx, index, query, next), nil
 
 	case sendValue:
-		if len(parts) != 2 {
-			return discord.NewError(true, errors.New("part send value")), nil
-		}
-
-		quote, err := a.searchApp.GetByID(ctx, index, parts[1])
+		quote, err := a.searchApp.GetByID(ctx, index, query)
 		if err != nil {
 			return discord.NewError(true, err), nil
 		}
@@ -67,14 +67,6 @@ func (a App) DiscordHandler(ctx context.Context, webhook discord.InteractionRequ
 		return discord.NewEphemeral(true, "Ok, not now."), nil
 
 	default:
-		response := a.handleSearch(ctx, index, query, "")
-		payload, err := json.Marshal(response)
-		if err != nil {
-			logger.Error("marshal discord: %s", err)
-		} else {
-			logger.Info("discord response: `%s`", payload)
-		}
-
 		return a.handleSearch(ctx, index, query, ""), nil
 	}
 }
@@ -96,19 +88,43 @@ func (a App) checkRequest(webhook discord.InteractionRequest) (string, error) {
 	return index, nil
 }
 
-func (a App) getQuery(webhook discord.InteractionRequest) string {
+func (a App) getQuery(ctx context.Context, webhook discord.InteractionRequest) (string, string, string, error) {
 	switch webhook.Type {
 	case discord.MessageComponentInteraction:
-		return webhook.Data.CustomID
+		if webhook.Data.CustomID == cancelValue {
+			return cancelValue, "", "", nil
+		}
+
+		content, err := a.redisApp.Load(ctx, version.Redis(webhook.Data.CustomID))
+		if err != nil {
+			return "", "", "", fmt.Errorf("load custom id: %w", err)
+		}
+
+		parts := strings.SplitN(content, contentSeparator, 3)
+		switch parts[0] {
+		case sendValue:
+			if len(parts) != 2 {
+				return "", "", "", errors.New("part send value")
+			}
+
+			return sendValue, parts[1], "", nil
+		case nextValue:
+			if len(parts) != 3 {
+				return "", "", "", errors.New("part cancel value")
+			}
+
+			return sendValue, parts[1], parts[2], nil
+		}
+
 	case discord.ApplicationCommandInteraction:
 		for _, option := range webhook.Data.Options {
 			if strings.EqualFold(option.Name, queryParam) {
-				return option.Value
+				return nextValue, option.Value, "", nil
 			}
 		}
 	}
 
-	return ""
+	return "", "", "", nil
 }
 
 func (a App) handleSearch(ctx context.Context, index, query, last string) discord.InteractionResponse {
@@ -121,21 +137,36 @@ func (a App) handleSearch(ctx context.Context, index, query, last string) discor
 		return discord.NewEphemeral(len(last) != 0, fmt.Sprintf("We found nothing for `%s`", query))
 	}
 
-	return a.interactiveResponse(quote, len(last) != 0, query)
+	return a.interactiveResponse(ctx, quote, len(last) != 0, query)
 }
 
-func (a App) interactiveResponse(quote model.Quote, replace bool, recherche string) discord.InteractionResponse {
+func (a App) interactiveResponse(ctx context.Context, quote model.Quote, replace bool, recherche string) discord.InteractionResponse {
+	ctx, end := tracer.StartSpan(ctx, a.tracer, "interactiveResponse")
+	defer end()
+
 	webhookType := discord.ChannelMessageWithSource
 	if replace {
 		webhookType = discord.UpdateMessageCallback
+	}
+
+	sendContent := strings.Join([]string{sendValue, quote.ID}, contentSeparator)
+	sendSha := sha.New(sendContent)
+	if err := a.redisApp.Store(ctx, version.Redis(sendSha), sendContent, time.Hour); err != nil {
+		return discord.NewError(replace, err)
+	}
+
+	nextContent := strings.Join([]string{nextValue, recherche, quote.ID}, contentSeparator)
+	nextSha := sha.New(nextContent)
+	if err := a.redisApp.Store(ctx, version.Redis(nextSha), nextContent, time.Hour); err != nil {
+		return discord.NewError(replace, err)
 	}
 
 	return discord.NewResponse(webhookType, "").Ephemeral().AddEmbed(a.getQuoteEmbed(quote)).AddComponent(
 		discord.Component{
 			Type: discord.ActionRowType,
 			Components: []discord.Component{
-				discord.NewButton(discord.PrimaryButton, i18n[quote.Language][sendValue], strings.Join([]string{sendValue, quote.ID}, contentSeparator)),
-				discord.NewButton(discord.SecondaryButton, i18n[quote.Language][nextValue], strings.Join([]string{nextValue, recherche, quote.ID}, contentSeparator)),
+				discord.NewButton(discord.PrimaryButton, i18n[quote.Language][sendValue], sendSha),
+				discord.NewButton(discord.SecondaryButton, i18n[quote.Language][nextValue], nextSha),
 				discord.NewButton(discord.DangerButton, i18n[quote.Language][cancelValue], cancelValue),
 			},
 		})

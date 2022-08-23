@@ -20,6 +20,7 @@ import (
 	"github.com/ViBiOh/httputils/v4/pkg/owasp"
 	"github.com/ViBiOh/httputils/v4/pkg/prometheus"
 	"github.com/ViBiOh/httputils/v4/pkg/recoverer"
+	"github.com/ViBiOh/httputils/v4/pkg/redis"
 	"github.com/ViBiOh/httputils/v4/pkg/renderer"
 	"github.com/ViBiOh/httputils/v4/pkg/request"
 	"github.com/ViBiOh/httputils/v4/pkg/server"
@@ -50,6 +51,8 @@ func main() {
 	owaspConfig := owasp.Flags(fs, "", flags.NewOverride("Csp", "default-src 'self'; base-uri 'self'; script-src 'self' 'httputils-nonce'; style-src 'self' 'httputils-nonce'; img-src 'self' platform.slack-edge.com"))
 	corsConfig := cors.Flags(fs, "cors")
 	rendererConfig := renderer.Flags(fs, "", flags.NewOverride("Title", "Kaamebott"), flags.NewOverride("PublicURL", "https://kaamebott.vibioh.fr"))
+
+	redisConfig := redis.Flags(fs, "redis")
 
 	searchConfig := search.Flags(fs, "search")
 	slackConfig := slack.Flags(fs, "slack")
@@ -82,8 +85,9 @@ func main() {
 
 	website := rendererApp.PublicURL("")
 
+	redisApp := redis.New(redisConfig, prometheusApp.Registerer(), tracerApp.GetTracer("redis"))
 	searchApp := search.New(searchConfig, quoteDB, rendererApp)
-	quoteApp := quote.New(website, searchApp)
+	quoteApp := quote.New(website, searchApp, redisApp, tracerApp.GetTracer("quote"))
 
 	discordApp, err := discord.New(discordConfig, website, quoteApp.DiscordHandler)
 	logger.Fatal(err)
