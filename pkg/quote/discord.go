@@ -2,11 +2,13 @@ package quote
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"strings"
 
 	"github.com/ViBiOh/ChatPotte/discord"
+	"github.com/ViBiOh/httputils/v4/pkg/logger"
 	"github.com/ViBiOh/kaamebott/pkg/model"
 	"github.com/ViBiOh/kaamebott/pkg/search"
 )
@@ -65,6 +67,14 @@ func (a App) DiscordHandler(ctx context.Context, webhook discord.InteractionRequ
 		return discord.NewEphemeral(true, "Ok, not now."), nil
 
 	default:
+		response := a.handleSearch(ctx, index, query, "")
+		payload, err := json.Marshal(response)
+		if err != nil {
+			logger.Error("marshal discord: %s", err)
+		} else {
+			logger.Info("discord response: `%s`", payload)
+		}
+
 		return a.handleSearch(ctx, index, query, ""), nil
 	}
 }
