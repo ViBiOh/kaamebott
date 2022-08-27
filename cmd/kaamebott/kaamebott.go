@@ -89,10 +89,10 @@ func main() {
 	searchApp := search.New(searchConfig, quoteDB, rendererApp)
 	quoteApp := quote.New(website, searchApp, redisApp, tracerApp.GetTracer("quote"))
 
-	discordApp, err := discord.New(discordConfig, website, quoteApp.DiscordHandler)
+	discordApp, err := discord.New(discordConfig, website, quoteApp.DiscordHandler, tracerApp.GetTracer("discord"))
 	logger.Fatal(err)
 
-	slackHandler := http.StripPrefix(slackPrefix, slack.New(slackConfig, quoteApp.SlackCommand, quoteApp.SlackInteract).Handler())
+	slackHandler := http.StripPrefix(slackPrefix, slack.New(slackConfig, quoteApp.SlackCommand, quoteApp.SlackInteract, tracerApp.GetTracer("slack")).Handler())
 	discordHandler := http.StripPrefix(discordPrefix, discordApp.Handler())
 	kaamebottHandler := rendererApp.Handler(searchApp.TemplateFunc)
 

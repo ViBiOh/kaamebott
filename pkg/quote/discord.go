@@ -4,11 +4,10 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"net/url"
 	"strings"
-	"time"
 
 	"github.com/ViBiOh/ChatPotte/discord"
-	"github.com/ViBiOh/httputils/v4/pkg/sha"
 	"github.com/ViBiOh/httputils/v4/pkg/tracer"
 	"github.com/ViBiOh/kaamebott/pkg/model"
 	"github.com/ViBiOh/kaamebott/pkg/search"
@@ -16,8 +15,7 @@ import (
 )
 
 const (
-	queryParam       = "recherche"
-	contentSeparator = "@"
+	queryParam = "recherche"
 
 	kaamelottName          = "kaamelott"
 	kaamelottGifName       = "kaamelottgif"
@@ -26,6 +24,11 @@ const (
 	officeName             = "office"
 	filmsName              = "citation"
 	filmsCollection        = "films"
+)
+
+var (
+	cachePrefix  = version.Redis("discord")
+	cancelAction = fmt.Sprintf("action=%s", url.QueryEscape(cancelValue))
 )
 
 var indexes = map[string]string{
@@ -91,29 +94,19 @@ func (a App) checkRequest(webhook discord.InteractionRequest) (string, error) {
 func (a App) getQuery(ctx context.Context, webhook discord.InteractionRequest) (string, string, string, error) {
 	switch webhook.Type {
 	case discord.MessageComponentInteraction:
-		if webhook.Data.CustomID == cancelValue {
-			return cancelValue, "", "", nil
-		}
 
-		content, err := a.redisApp.Load(ctx, version.Redis(webhook.Data.CustomID))
+		values, err := discord.RestoreCustomID(ctx, a.redisApp, cachePrefix, webhook.Data.CustomID, []string{cancelAction})
 		if err != nil {
-			return "", "", "", fmt.Errorf("load custom id: %w", err)
+			return "", "", "", fmt.Errorf("restore id: %w", err)
 		}
 
-		parts := strings.SplitN(content, contentSeparator, 3)
-		switch parts[0] {
+		switch values.Get("action") {
 		case sendValue:
-			if len(parts) != 2 {
-				return "", "", "", errors.New("part send value")
-			}
-
-			return sendValue, parts[1], "", nil
+			return sendValue, values.Get("id"), "", nil
 		case nextValue:
-			if len(parts) != 3 {
-				return "", "", "", errors.New("part cancel value")
-			}
-
-			return sendValue, parts[1], parts[2], nil
+			return nextValue, values.Get("id"), values.Get("recherche"), nil
+		case cancelValue:
+			return cancelValue, "", "", nil
 		}
 
 	case discord.ApplicationCommandInteraction:
@@ -149,15 +142,22 @@ func (a App) interactiveResponse(ctx context.Context, quote model.Quote, replace
 		webhookType = discord.UpdateMessageCallback
 	}
 
-	sendContent := strings.Join([]string{sendValue, quote.ID}, contentSeparator)
-	sendSha := sha.New(sendContent)
-	if err := a.redisApp.Store(ctx, version.Redis(sendSha), sendContent, time.Hour); err != nil {
+	sendValues := url.Values{}
+	sendValues.Add("action", sendValue)
+	sendValues.Add("id", quote.ID)
+
+	sendKey, err := discord.SaveCustomID(ctx, a.redisApp, cachePrefix, sendValues)
+	if err != nil {
 		return discord.NewError(replace, err)
 	}
 
-	nextContent := strings.Join([]string{nextValue, recherche, quote.ID}, contentSeparator)
-	nextSha := sha.New(nextContent)
-	if err := a.redisApp.Store(ctx, version.Redis(nextSha), nextContent, time.Hour); err != nil {
+	nextValues := url.Values{}
+	nextValues.Add("action", nextValue)
+	nextValues.Add("id", quote.ID)
+	nextValues.Add("recherche", recherche)
+
+	nextKey, err := discord.SaveCustomID(ctx, a.redisApp, cachePrefix, nextValues)
+	if err != nil {
 		return discord.NewError(replace, err)
 	}
 
@@ -165,9 +165,9 @@ func (a App) interactiveResponse(ctx context.Context, quote model.Quote, replace
 		discord.Component{
 			Type: discord.ActionRowType,
 			Components: []discord.Component{
-				discord.NewButton(discord.PrimaryButton, i18n[quote.Language][sendValue], sendSha),
-				discord.NewButton(discord.SecondaryButton, i18n[quote.Language][nextValue], nextSha),
-				discord.NewButton(discord.DangerButton, i18n[quote.Language][cancelValue], cancelValue),
+				discord.NewButton(discord.PrimaryButton, i18n[quote.Language][sendValue], sendKey),
+				discord.NewButton(discord.SecondaryButton, i18n[quote.Language][nextValue], nextKey),
+				discord.NewButton(discord.DangerButton, i18n[quote.Language][cancelValue], cancelAction),
 			},
 		})
 }
