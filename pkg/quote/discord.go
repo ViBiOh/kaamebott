@@ -104,7 +104,7 @@ func (a App) getQuery(ctx context.Context, webhook discord.InteractionRequest) (
 		case sendValue:
 			return sendValue, values.Get("id"), "", nil
 		case nextValue:
-			return nextValue, values.Get("id"), values.Get("recherche"), nil
+			return nextValue, values.Get("recherche"), values.Get("id"), nil
 		case cancelValue:
 			return cancelValue, "", "", nil
 		}
