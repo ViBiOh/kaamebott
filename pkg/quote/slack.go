@@ -38,10 +38,10 @@ var i18n map[string]map[string]string = map[string]map[string]string{
 
 // App of package
 type App struct {
-	website   string
-	tracer    trace.Tracer
-	searchApp search.App
 	redisApp  redis.App
+	tracer    trace.Tracer
+	website   string
+	searchApp search.App
 }
 
 // New creates new App from Config
