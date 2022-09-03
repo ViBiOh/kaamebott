@@ -3,9 +3,9 @@ module github.com/ViBiOh/kaamebott
 go 1.19
 
 require (
-	github.com/ViBiOh/ChatPotte v0.2.5
+	github.com/ViBiOh/ChatPotte v0.2.8
 	github.com/ViBiOh/flags v1.2.0
-	github.com/ViBiOh/httputils/v4 v4.47.0
+	github.com/ViBiOh/httputils/v4 v4.47.3
 	github.com/jackc/pgx/v4 v4.17.1
 	go.opentelemetry.io/otel/trace v1.9.0
 	golang.org/x/text v0.3.7
@@ -40,7 +40,7 @@ require (
 	go.opentelemetry.io/otel/exporters/jaeger v1.9.0 // indirect
 	go.opentelemetry.io/otel/metric v0.31.0 // indirect
 	go.opentelemetry.io/otel/sdk v1.9.0 // indirect
-	golang.org/x/crypto v0.0.0-20220826181053-bd7e27e6170d // indirect
+	golang.org/x/crypto v0.0.0-20220829220503-c86fa9a7ed90 // indirect
 	golang.org/x/net v0.0.0-20220722155237-a158d28d115b // indirect
 	golang.org/x/sys v0.0.0-20220823224334-20c2bfdbfe24 // indirect
 	golang.org/x/term v0.0.0-20220722155259-a9ba230a4035 // indirect
