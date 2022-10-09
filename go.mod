@@ -3,9 +3,9 @@ module github.com/ViBiOh/kaamebott
 go 1.19
 
 require (
-	github.com/ViBiOh/ChatPotte v0.2.17
+	github.com/ViBiOh/ChatPotte v0.2.20
 	github.com/ViBiOh/flags v1.2.0
-	github.com/ViBiOh/httputils/v4 v4.48.3
+	github.com/ViBiOh/httputils/v4 v4.49.2
 	github.com/jackc/pgx/v4 v4.17.2
 	go.opentelemetry.io/otel/trace v1.10.0
 	golang.org/x/text v0.3.7
