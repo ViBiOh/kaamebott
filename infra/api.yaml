@@ -24,7 +24,7 @@ spec:
     nameOverride: kaamebott
     image:
       name: vibioh/kaamebott
-      tag: "202210091133" # {"$imagepolicy": "default:flux-kaamebott-api:tag"}
+      tag: "202210150944" # {"$imagepolicy": "default:flux-kaamebott-api:tag"}
     config:
       KAAMEBOTT_DB_HOST: postgres
       KAAMEBOTT_DB_NAME: kaamebott
