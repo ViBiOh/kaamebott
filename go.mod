@@ -8,7 +8,7 @@ require (
 	github.com/ViBiOh/httputils/v4 v4.50.5
 	github.com/jackc/pgx/v4 v4.17.2
 	go.opentelemetry.io/otel/trace v1.11.1
-	golang.org/x/text v0.4.0
+	golang.org/x/text v0.5.0
 )
 
 require (
