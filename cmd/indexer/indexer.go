@@ -27,7 +27,9 @@ func main() {
 
 	logger.Fatal(fs.Parse(os.Args[1:]))
 
-	quoteDB, err := db.New(dbConfig, nil)
+	ctx := context.Background()
+
+	quoteDB, err := db.New(ctx, dbConfig, nil)
 	logger.Fatal(err)
 	defer quoteDB.Close()
 
