@@ -38,7 +38,7 @@ func main() {
 		logger.Fatal(fmt.Errorf("read quotes: %w", err))
 	}
 
-	logger.Fatal(quoteDB.DoAtomic(context.Background(), func(ctx context.Context) error {
+	logger.Fatal(quoteDB.DoAtomic(ctx, func(ctx context.Context) error {
 		collectionID, err := getOrCreateCollection(ctx, quoteDB, collectionName, *language)
 		if err != nil {
 			return fmt.Errorf("get or create collection: %w", err)
