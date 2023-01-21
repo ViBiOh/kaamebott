@@ -95,7 +95,7 @@ func (a App) getQuery(ctx context.Context, webhook discord.InteractionRequest) (
 	switch webhook.Type {
 	case discord.MessageComponentInteraction:
 
-		values, err := discord.RestoreCustomID(ctx, a.redisApp, cachePrefix, webhook.Data.CustomID, []string{cancelAction})
+		values, err := discord.RestoreCustomID(ctx, a.redisClient, cachePrefix, webhook.Data.CustomID, []string{cancelAction})
 		if err != nil {
 			return "", "", "", fmt.Errorf("restore id: %w", err)
 		}
@@ -146,7 +146,7 @@ func (a App) interactiveResponse(ctx context.Context, quote model.Quote, replace
 	sendValues.Add("action", sendValue)
 	sendValues.Add("id", quote.ID)
 
-	sendKey, err := discord.SaveCustomID(ctx, a.redisApp, cachePrefix, sendValues)
+	sendKey, err := discord.SaveCustomID(ctx, a.redisClient, cachePrefix, sendValues)
 	if err != nil {
 		return discord.NewError(replace, err)
 	}
@@ -156,7 +156,7 @@ func (a App) interactiveResponse(ctx context.Context, quote model.Quote, replace
 	nextValues.Add("id", quote.ID)
 	nextValues.Add("recherche", recherche)
 
-	nextKey, err := discord.SaveCustomID(ctx, a.redisApp, cachePrefix, nextValues)
+	nextKey, err := discord.SaveCustomID(ctx, a.redisClient, cachePrefix, nextValues)
 	if err != nil {
 		return discord.NewError(replace, err)
 	}
