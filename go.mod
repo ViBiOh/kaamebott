@@ -3,9 +3,9 @@ module github.com/ViBiOh/kaamebott
 go 1.19
 
 require (
-	github.com/ViBiOh/ChatPotte v0.2.27
+	github.com/ViBiOh/ChatPotte v0.2.28
 	github.com/ViBiOh/flags v1.2.0
-	github.com/ViBiOh/httputils/v4 v4.52.4
+	github.com/ViBiOh/httputils/v4 v4.52.6
 	github.com/jackc/pgx/v4 v4.17.2
 	go.opentelemetry.io/otel/trace v1.11.2
 	golang.org/x/text v0.6.0
@@ -25,7 +25,7 @@ require (
 	github.com/jackc/pgio v1.0.0 // indirect
 	github.com/jackc/pgpassfile v1.0.0 // indirect
 	github.com/jackc/pgproto3/v2 v2.3.1 // indirect
-	github.com/jackc/pgservicefile v0.0.0-20200714003250-2b9c44734f2b // indirect
+	github.com/jackc/pgservicefile v0.0.0-20221227161230-091c0ba34f0a // indirect
 	github.com/jackc/pgtype v1.13.0 // indirect
 	github.com/jackc/puddle v1.3.0 // indirect
 	github.com/matttproud/golang_protobuf_extensions v1.0.4 // indirect
