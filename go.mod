@@ -1,6 +1,6 @@
 module github.com/ViBiOh/kaamebott
 
-go 1.19
+go 1.20
 
 require (
 	github.com/ViBiOh/ChatPotte v0.2.28
