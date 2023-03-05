@@ -41,8 +41,10 @@ var indexes = map[string]string{
 
 // DiscordHandler handle discord request
 func (a App) DiscordHandler(ctx context.Context, webhook discord.InteractionRequest) (discord.InteractionResponse, func(context.Context) discord.InteractionResponse) {
+	var err error
+
 	ctx, end := tracer.StartSpan(ctx, a.tracer, "DiscordHandler")
-	defer end()
+	defer end(&err)
 
 	index, err := a.checkRequest(webhook)
 	if err != nil {
@@ -134,8 +136,10 @@ func (a App) handleSearch(ctx context.Context, index, query, last string) discor
 }
 
 func (a App) interactiveResponse(ctx context.Context, quote model.Quote, replace bool, recherche string) discord.InteractionResponse {
+	var err error
+
 	ctx, end := tracer.StartSpan(ctx, a.tracer, "interactiveResponse")
-	defer end()
+	defer end(&err)
 
 	webhookType := discord.ChannelMessageWithSource
 	if replace {

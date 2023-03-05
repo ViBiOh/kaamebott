@@ -58,6 +58,8 @@ Usage of kaamebott:
         [db] Host {KAAMEBOTT_DB_HOST}
   -dbMaxConn uint
         [db] Max Open Connections {KAAMEBOTT_DB_MAX_CONN} (default 5)
+  -dbMinConn uint
+        [db] Min Open Connections {KAAMEBOTT_DB_MIN_CONN} (default 2)
   -dbName string
         [db] Name {KAAMEBOTT_DB_NAME}
   -dbPass string
@@ -129,7 +131,7 @@ Usage of kaamebott:
   -readTimeout duration
         [server] Read Timeout {KAAMEBOTT_READ_TIMEOUT} (default 5s)
   -redisAddress string
-        [redis] Redis Address (blank to disable) {KAAMEBOTT_REDIS_ADDRESS} (default "localhost:6379")
+        [redis] Redis Address fqdn:port (blank to disable) {KAAMEBOTT_REDIS_ADDRESS} (default "localhost:6379")
   -redisAlias string
         [redis] Connection alias, for metric {KAAMEBOTT_REDIS_ALIAS}
   -redisDatabase int
@@ -151,9 +153,9 @@ Usage of kaamebott:
   -title string
         Application title {KAAMEBOTT_TITLE} (default "Kaamebott")
   -tracerRate string
-        [tracer] Jaeger sample rate, 'always', 'never' or a float value {KAAMEBOTT_TRACER_RATE} (default "always")
+        [tracer] OpenTracing sample rate, 'always', 'never' or a float value {KAAMEBOTT_TRACER_RATE} (default "always")
   -tracerURL string
-        [tracer] Jaeger endpoint URL (e.g. http://jaeger:14268/api/traces) {KAAMEBOTT_TRACER_URL}
+        [tracer] OpenTracing gRPC endpoint (e.g. otel-exporter:4317) {KAAMEBOTT_TRACER_URL}
   -url string
         [alcotest] URL to check {KAAMEBOTT_URL}
   -userAgent string

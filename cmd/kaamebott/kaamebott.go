@@ -88,7 +88,7 @@ func main() {
 
 	website := rendererApp.PublicURL("")
 
-	redisApp := redis.New(redisConfig, prometheusApp.Registerer(), tracerApp.GetTracer("redis"))
+	redisApp := redis.New(redisConfig, tracerApp.GetTracer("redis"))
 	searchApp := search.New(searchConfig, quoteDB, rendererApp)
 	quoteApp := quote.New(website, searchApp, redisApp, tracerApp.GetTracer("quote"))
 

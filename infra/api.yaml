@@ -32,7 +32,7 @@ spec:
       KAAMEBOTT_DISCORD_APPLICATION_ID: "882376778943971349"
       KAAMEBOTT_DISCORD_PUBLIC_KEY: d3acdcf3d7dc08c1d32714b3a51b0db4e40041059e075b274d94326011c20a31
       KAAMEBOTT_LOGGER_JSON: "true"
-      KAAMEBOTT_TRACER_URL: http://jaeger.monitoring:14268/api/traces
+      KAAMEBOTT_TRACER_URL: otel-collector.monitoring:4317
       KAAMEBOTT_REDIS_ADDRESS: redis:80
       OTEL_SERVICE_NAME: kaamebott
     secrets:
