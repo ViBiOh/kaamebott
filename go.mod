@@ -5,7 +5,7 @@ go 1.20
 require (
 	github.com/ViBiOh/ChatPotte v0.2.29
 	github.com/ViBiOh/flags v1.2.0
-	github.com/ViBiOh/httputils/v4 v4.54.0
+	github.com/ViBiOh/httputils/v4 v4.54.1
 	github.com/jackc/pgx/v5 v5.3.1
 	go.opentelemetry.io/otel/trace v1.14.0
 	golang.org/x/text v0.7.0
