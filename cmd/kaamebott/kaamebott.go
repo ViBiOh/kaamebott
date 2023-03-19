@@ -88,7 +88,10 @@ func main() {
 
 	website := rendererApp.PublicURL("")
 
-	redisApp := redis.New(redisConfig, tracerApp.GetTracer("redis"))
+	redisApp, err := redis.New(redisConfig, tracerApp.GetProvider())
+	logger.Fatal(err)
+	defer redisApp.Close()
+
 	searchApp := search.New(searchConfig, quoteDB, rendererApp)
 	quoteApp := quote.New(website, searchApp, redisApp, tracerApp.GetTracer("quote"))
 
