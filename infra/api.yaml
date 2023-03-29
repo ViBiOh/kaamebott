@@ -26,6 +26,7 @@ spec:
       name: vibioh/kaamebott
       tag: "202303191309" # {"$imagepolicy": "default:flux-kaamebott-api:tag"}
     config:
+      GOMAXPROCS: "1"
       KAAMEBOTT_DB_HOST: postgres
       KAAMEBOTT_DB_NAME: kaamebott
       KAAMEBOTT_DB_PORT: "80"
