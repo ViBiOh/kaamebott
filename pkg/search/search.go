@@ -47,7 +47,7 @@ type Config struct {
 // Flags adds flags for configuring package
 func Flags(fs *flag.FlagSet, prefix string) Config {
 	return Config{
-		value: flags.String(fs, prefix, "search", "Value", "Value key", "value", nil),
+		value: flags.New("Value", "Value key").Prefix(prefix).DocPrefix("search").String(fs, "value", nil),
 	}
 }
 

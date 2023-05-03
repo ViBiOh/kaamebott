@@ -20,8 +20,8 @@ import (
 func main() {
 	fs := flag.NewFlagSet("indexer", flag.ExitOnError)
 
-	inputFile := flags.String(fs, "", "indexer", "input", "JSON File", "", nil)
-	language := flags.String(fs, "", "indexer", "language", "Language for tsvector", "french", nil)
+	inputFile := flags.New("input", "JSON File").DocPrefix("indexer").String(fs, "", nil)
+	language := flags.New("language", "Language for tsvector").DocPrefix("indexer").String(fs, "french", nil)
 
 	dbConfig := db.Flags(fs, "db")
 
