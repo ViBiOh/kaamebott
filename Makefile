@@ -92,3 +92,8 @@ run:
 .PHONY: run-indexer
 run-indexer:
 	$(INDEXER_RUNNER)
+
+## config: Create local configuration
+.PHONY: config
+config:
+	@cp .env.example .env
