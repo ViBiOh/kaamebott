@@ -19,6 +19,7 @@ import (
 
 func main() {
 	fs := flag.NewFlagSet("indexer", flag.ExitOnError)
+	fs.Usage = flags.Usage(fs)
 
 	inputFile := flags.New("input", "JSON File").DocPrefix("indexer").String(fs, "", nil)
 	language := flags.New("language", "Language for tsvector").DocPrefix("indexer").String(fs, "french", nil)
