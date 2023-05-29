@@ -35,8 +35,8 @@ var (
 type App struct {
 	dbApp       db.App
 	random      *rand.Rand
+	rendererApp *renderer.App
 	value       string
-	rendererApp renderer.App
 }
 
 // Config of package
@@ -52,7 +52,7 @@ func Flags(fs *flag.FlagSet, prefix string) Config {
 }
 
 // New creates new App from Config
-func New(config Config, dbApp db.App, rendererApp renderer.App) App {
+func New(config Config, dbApp db.App, rendererApp *renderer.App) App {
 	return App{
 		value:       *config.value,
 		random:      rand.New(rand.NewSource(time.Now().Unix())),
