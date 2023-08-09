@@ -148,6 +148,8 @@ func (a App) getContentBlock(quote model.Quote) slack.Block {
 		return a.getOfficeBlock(quote)
 	case "films":
 		return a.getFilmBlock(quote)
+	case "telerealite":
+		return a.getTelerealiteBlock(quote)
 	default:
 		return nil
 	}
@@ -180,6 +182,12 @@ func (a App) getOfficeBlock(quote model.Quote) slack.Block {
 
 func (a App) getFilmBlock(quote model.Quote) slack.Block {
 	text := slack.NewText(fmt.Sprintf("*%s*\n\n_%s_\n%s", quote.Context, quote.Character, quote.Value))
+
+	return slack.NewSection(text)
+}
+
+func (a App) getTelerealiteBlock(quote model.Quote) slack.Block {
+	text := slack.NewText(fmt.Sprintf("*%s*\n\n%s", quote.Character, quote.Value))
 
 	return slack.NewSection(text)
 }

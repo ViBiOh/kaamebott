@@ -24,6 +24,7 @@ const (
 	officeName             = "office"
 	filmsName              = "citation"
 	filmsCollection        = "films"
+	telerealiteName        = "telerealite"
 )
 
 var (
@@ -37,6 +38,7 @@ var indexes = map[string]string{
 	oss117Name:       oss117Name,
 	officeName:       officeName,
 	filmsName:        filmsCollection,
+	telerealiteName:  telerealiteName,
 }
 
 // DiscordHandler handle discord request
@@ -192,6 +194,8 @@ func (a App) getQuoteEmbed(quote model.Quote) discord.Embed {
 		return a.getOfficeEmbeds(quote)
 	case filmsCollection:
 		return a.getFilmsEmbeds(quote)
+	case telerealiteName:
+		return a.getTelerealiteEmbeds(quote)
 	default:
 		return discord.Embed{
 			Title:       "Error",
@@ -247,5 +251,12 @@ func (a App) getFilmsEmbeds(quote model.Quote) discord.Embed {
 		Fields: []discord.Field{
 			discord.NewField("Personnage(s)", quote.Character),
 		},
+	}
+}
+
+func (a App) getTelerealiteEmbeds(quote model.Quote) discord.Embed {
+	return discord.Embed{
+		Title:       quote.Character,
+		Description: quote.Value,
 	}
 }
