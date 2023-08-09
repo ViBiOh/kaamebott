@@ -93,6 +93,18 @@ spec:
                 "required": true
               }
             ]
+          },
+          "telerealite": {
+            "name": "telerealite",
+            "description": "Une citation de téléréalité en français",
+            "options": [
+              {
+                "name": "recherche",
+                "description": "Un mot clé pour affiner la recherche",
+                "type": 3,
+                "required": true
+              }
+            ]
           }
         }
     secrets:
