@@ -1,112 +1,138 @@
-apiVersion: helm.toolkit.fluxcd.io/v2beta1
-kind: HelmRelease
+---
+apiVersion: batch/v1
+kind: Job
 metadata:
   name: kaamebott-discord
   namespace: default
+  labels:
+    app.kubernetes.io/managed-by: kustomize
+    app.kubernetes.io/version: latest
+    k8s-cleaner: "true"
 spec:
-  interval: 120m
-  chart:
+  backoffLimit: 3
+  template:
     spec:
-      chart: job
-      version: "0.0.18"
-      sourceRef:
-        kind: HelmRepository
-        name: vibioh
-      interval: 120m
-  install:
-    skipCRDs: true
-  maxHistory: 3
-  upgrade:
-    remediation:
-      retries: 3
-  rollback:
-    cleanupOnFail: true
-  values:
-    nameOverride: kaamebott-discord
-    extraLabels:
-      k8s-cleaner: "true"
-    image:
-      name: vibioh/discord_configure
-      tag: "latest"
-    config:
-      DISCORD_APPLICATION_ID: "882376778943971349"
-      DISCORD_PUBLIC_KEY: d3acdcf3d7dc08c1d32714b3a51b0db4e40041059e075b274d94326011c20a31
-      DISCORD_LOGGER_JSON: "true"
-      DISCORD_COMMANDS: |
-        {
-          "kaamelott": {
-            "name": "kaamelott",
-            "description": "Une citation de la cour du roi Arthur",
-            "options": [
-              {
-                "name": "recherche",
-                "description": "Un mot clé pour affiner la recherche",
-                "type": 3,
-                "required": true
-              }
-            ]
-          },
-          "kaamelottgif": {
-            "name": "kaamelottgif",
-            "description": "Une vidéo de la cour du roi Arthur",
-            "options": [
-              {
-                "name": "recherche",
-                "description": "Un mot clé pour affiner la recherche",
-                "type": 3,
-                "required": true
-              }
-            ]
-          },
-          "oss117": {
-            "name": "oss117",
-            "description": "Une citation des films OSS117",
-            "options": [
-              {
-                "name": "recherche",
-                "description": "Un mot clé pour affiner la recherche",
-                "type": 3,
-                "required": true
-              }
-            ]
-          },
-          "office": {
-            "name": "office",
-            "description": "A citation from The Office",
-            "options": [
-              {
-                "name": "recherche",
-                "description": "A keyword to refine search",
-                "type": 3,
-                "required": true
-              }
-            ]
-          },
-          "citation": {
-            "name": "citation",
-            "description": "Une citation de film en français",
-            "options": [
-              {
-                "name": "recherche",
-                "description": "Un mot clé pour affiner la recherche",
-                "type": 3,
-                "required": true
-              }
-            ]
-          },
-          "telerealite": {
-            "name": "telerealite",
-            "description": "Une citation de téléréalité en français",
-            "options": [
-              {
-                "name": "recherche",
-                "description": "Un mot clé pour affiner la recherche",
-                "type": 3,
-                "required": true
-              }
-            ]
-          }
-        }
-    secrets:
-      DISCORD_CLIENT_ID: AgBAHWcBna1ZqtgL2/Ll74G89PvypKJ+Cpp+KhOA4xZwqCW23/TUd1v0dB708SQBen8ZYL3fjg0ZVRIUITGsmdBDrAGtT/l0tl0+scy+AVFkt2Yq7tQUdB/2HNmnj2UQPtylWJpnk9gt26BbDOZZSMc7EtgyKSccjui/a8JHPWP7p398ET91uYNKEYtCHgh4/lZHNTThxiNGAkUohCBO2EDZAxS5QFjwUiSp/KVxPdD4r9Oa4l1DJaaoVs3fD4NsAQ8zy0raDh+6u4lc1u0ZFmflSnW+WZ2WOQxWxR5NOO9QNsK3eDGbHg276bHA926V7geL8AvFFN4i9XNcOuULv+y47FQQsNJejBjtrGdsFrZ4YwshR54BJ/mrzQenDwJwtCBnuNg0e615LQCenKwHCmZv0WIxOg9g1fK9A2pt5ezhnLZvlF5thQhJygzE4tFNnbR1/NHPH3d23ZAcEbHJ2NklndltFRllgn578Kas1T8IUi9mcT3G9ChKUzrZrGdPSSibe68O0Qqk9aeIRQheS4NA+qC40tozf5mINlSL/ajoyWU/nv7imAZO0/YXNB8zWsaTaxQTUFzNWxGxdF/DT2A2YqVqlpgMCcUOW1XfVZVFEt2gTktn5FidkzHVeDQNrZBXV7PDIJl3wqpoK1VlK7keY2uVNVd8KDUtbVA5hucNPBAmchwtvzmBgIp4Y7LCBG7Agw0HrtvsGoFDVZoKIRRXyBE=
-      DISCORD_CLIENT_SECRET: AgBkqM2r1URmWFLerkuCsNpKNt0QFk2NMuJHgkl+HxxTwr4XyfmxxkkrED4sSi6tAbjMC2v1V8SD4lFLgBJvIAGdrDKGapVRMZx07CBmBKyr39CAtTWXF/cSo4FU7j9OZMmOJYGvr/rKypMqYE1kVgIjc2GSRyNph/0FktX2Ca1KKE220Ue4zsMFqQNiRkfdra75vaOc4ZtQcmfK4HXSjPTQxmGXyQxYZp9HqM5teLK4kblB/wDtvNu/Tx8Nh4W/rJA5TTwMhYhGeFnWp37NHogidxNlFwkj9W0E5i7jG6e/kYu0vC881jzuPfHBVqgIqR+T6xY4emGQ76blQBSSu57XAMjOnSoY64FaA68i8nUyRoKKsZg2KwUn2FSsKOf5t4F2JbvyZG32V2x/1w1ruyHmmuB6lADMpf0oRCQjwP02tIZBfUNKJByIYfP2H22ETfNt2FuzMh0/faG3xddQ3JYds5qKAMiUDZQIPMW/Kjt2R9AE7dJVvUowjtfwRJCF3JIEBTvRUsws1FBhtwxoVMEtOs5aXhvyFDrtDeOrGULYKmln4/hzff43J6Dv0pge/5VqdHj+8E/ddoPgiRMH1GJxratovYkXmKOuGIa7MSYvPJqqGhl4w04jFSorkFNN4SHCeU7amZXs4wmU7TcYFpatAU1hZm1wOuY2jCJGRGYV4LD+ZM296JgF3SBDuc1c3sqpa7Dm7lMmTqnSUWkPC4Q46ZkN+wSI5kzQa0vbyWgskw==
+      automountServiceAccountToken: false
+
+      imagePullSecrets:
+        - name: dockerhub
+
+      restartPolicy: OnFailure
+      securityContext:
+        seccompProfile:
+          type: RuntimeDefault
+
+      containers:
+        - name: discord
+
+          image: vibioh/discord_configure
+          imagePullPolicy: Always
+
+          env:
+            - name: DISCORD_APPLICATION_ID
+              value: "882376778943971349"
+            - name: DISCORD_COMMANDS
+              value: |
+                {
+                  "kaamelott": {
+                    "name": "kaamelott",
+                    "description": "Une citation de la cour du roi Arthur",
+                    "options": [
+                      {
+                        "name": "recherche",
+                        "description": "Un mot clé pour affiner la recherche",
+                        "type": 3,
+                        "required": true
+                      }
+                    ]
+                  },
+                  "kaamelottgif": {
+                    "name": "kaamelottgif",
+                    "description": "Une vidéo de la cour du roi Arthur",
+                    "options": [
+                      {
+                        "name": "recherche",
+                        "description": "Un mot clé pour affiner la recherche",
+                        "type": 3,
+                        "required": true
+                      }
+                    ]
+                  },
+                  "oss117": {
+                    "name": "oss117",
+                    "description": "Une citation des films OSS117",
+                    "options": [
+                      {
+                        "name": "recherche",
+                        "description": "Un mot clé pour affiner la recherche",
+                        "type": 3,
+                        "required": true
+                      }
+                    ]
+                  },
+                  "office": {
+                    "name": "office",
+                    "description": "A citation from The Office",
+                    "options": [
+                      {
+                        "name": "recherche",
+                        "description": "A keyword to refine search",
+                        "type": 3,
+                        "required": true
+                      }
+                    ]
+                  },
+                  "citation": {
+                    "name": "citation",
+                    "description": "Une citation de film en français",
+                    "options": [
+                      {
+                        "name": "recherche",
+                        "description": "Un mot clé pour affiner la recherche",
+                        "type": 3,
+                        "required": true
+                      }
+                    ]
+                  },
+                  "telerealite": {
+                    "name": "telerealite",
+                    "description": "Une citation de téléréalité en français",
+                    "options": [
+                      {
+                        "name": "recherche",
+                        "description": "Un mot clé pour affiner la recherche",
+                        "type": 3,
+                        "required": true
+                      }
+                    ]
+                  }
+                }
+            - name: DISCORD_LOGGER_JSON
+              value: "true"
+            - name: DISCORD_PUBLIC_KEY
+              value: d3acdcf3d7dc08c1d32714b3a51b0db4e40041059e075b274d94326011c20a31
+            - name: DISCORD_CLIENT_ID
+              valueFrom:
+                secretKeyRef:
+                  name: kaamebott
+                  key: KAAMEBOTT_DISCORD_CLIENT_ID
+            - name: DISCORD_CLIENT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: kaamebott
+                  key: KAAMEBOTT_DISCORD_CLIENT_SECRET
+
+          resources:
+            limits:
+              memory: 64Mi
+            requests:
+              cpu: 100m
+              memory: 64Mi
+
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+            readOnlyRootFilesystem: true
+            runAsNonRoot: true
