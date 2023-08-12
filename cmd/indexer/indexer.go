@@ -12,8 +12,8 @@ import (
 
 	"github.com/ViBiOh/flags"
 	"github.com/ViBiOh/httputils/v4/pkg/db"
+	"github.com/ViBiOh/httputils/v4/pkg/hash"
 	"github.com/ViBiOh/httputils/v4/pkg/logger"
-	"github.com/ViBiOh/httputils/v4/pkg/sha"
 	"github.com/ViBiOh/kaamebott/pkg/model"
 	"github.com/jackc/pgx/v5"
 )
@@ -119,7 +119,7 @@ func insertQuotes(ctx context.Context, quoteDB db.App, collectionID uint64, quot
 
 		item := quotes[index]
 		if len(item.ID) == 0 {
-			item.ID = sha.New(item.Value)
+			item.ID = hash.String(item.Value)
 		}
 
 		index++
