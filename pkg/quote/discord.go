@@ -8,7 +8,7 @@ import (
 	"strings"
 
 	"github.com/ViBiOh/ChatPotte/discord"
-	"github.com/ViBiOh/httputils/v4/pkg/tracer"
+	"github.com/ViBiOh/httputils/v4/pkg/telemetry"
 	"github.com/ViBiOh/kaamebott/pkg/model"
 	"github.com/ViBiOh/kaamebott/pkg/search"
 	"github.com/ViBiOh/kaamebott/pkg/version"
@@ -45,7 +45,7 @@ var indexes = map[string]string{
 func (a App) DiscordHandler(ctx context.Context, webhook discord.InteractionRequest) (discord.InteractionResponse, func(context.Context) discord.InteractionResponse) {
 	var err error
 
-	ctx, end := tracer.StartSpan(ctx, a.tracer, "DiscordHandler")
+	ctx, end := telemetry.StartSpan(ctx, a.tracer, "DiscordHandler")
 	defer end(&err)
 
 	index, err := a.checkRequest(webhook)
@@ -140,7 +140,7 @@ func (a App) handleSearch(ctx context.Context, index, query, last string) discor
 func (a App) interactiveResponse(ctx context.Context, quote model.Quote, replace bool, recherche string) discord.InteractionResponse {
 	var err error
 
-	ctx, end := tracer.StartSpan(ctx, a.tracer, "interactiveResponse")
+	ctx, end := telemetry.StartSpan(ctx, a.tracer, "interactiveResponse")
 	defer end(&err)
 
 	webhookType := discord.ChannelMessageWithSource

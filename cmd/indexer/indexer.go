@@ -7,6 +7,7 @@ import (
 	"flag"
 	"fmt"
 	"log"
+	"log/slog"
 	"os"
 	"path"
 	"strings"
@@ -14,7 +15,6 @@ import (
 	"github.com/ViBiOh/flags"
 	"github.com/ViBiOh/httputils/v4/pkg/db"
 	"github.com/ViBiOh/httputils/v4/pkg/hash"
-	"github.com/ViBiOh/httputils/v4/pkg/logger"
 	"github.com/ViBiOh/kaamebott/pkg/model"
 	"github.com/jackc/pgx/v5"
 )
@@ -35,15 +35,20 @@ func main() {
 	ctx := context.Background()
 
 	quoteDB, err := db.New(ctx, dbConfig, nil)
-	logger.Fatal(err)
+	if err != nil {
+		slog.Error("create db", "err", err)
+		os.Exit(1)
+	}
+
 	defer quoteDB.Close()
 
 	quotes, collectionName, err := readQuotes(*inputFile)
 	if err != nil {
-		logger.Fatal(fmt.Errorf("read quotes: %w", err))
+		slog.Error("read quote", "err", err)
+		os.Exit(1)
 	}
 
-	logger.Fatal(quoteDB.DoAtomic(ctx, func(ctx context.Context) error {
+	if err := quoteDB.DoAtomic(ctx, func(ctx context.Context) error {
 		collectionID, err := getOrCreateCollection(ctx, quoteDB, collectionName, *language)
 		if err != nil {
 			return fmt.Errorf("get or create collection: %w", err)
@@ -62,9 +67,12 @@ func main() {
 		}
 
 		return nil
-	}))
+	}); err != nil {
+		slog.Error("update quotes", "err", err)
+		os.Exit(1)
+	}
 
-	logger.Info("Collection %s indexed", collectionName)
+	slog.Info("Collection indexed", "collection", collectionName)
 }
 
 func readQuotes(filename string) ([]model.Quote, string, error) {
@@ -75,7 +83,7 @@ func readQuotes(filename string) ([]model.Quote, string, error) {
 
 	defer func() {
 		if closeErr := reader.Close(); closeErr != nil {
-			logger.WithField("fn", "indexer.readQuotes").WithField("item", filename).Error("close: %s", closeErr)
+			slog.Error("close", "err", closeErr, "item", filename, "fn", "indexer.readQuotes")
 		}
 	}()
 

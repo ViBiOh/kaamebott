@@ -6,13 +6,13 @@ import (
 	"flag"
 	"fmt"
 	"html/template"
+	"log/slog"
 	"math/rand"
 	"net/http"
 	"time"
 
 	"github.com/ViBiOh/flags"
 	"github.com/ViBiOh/httputils/v4/pkg/db"
-	"github.com/ViBiOh/httputils/v4/pkg/logger"
 	"github.com/ViBiOh/httputils/v4/pkg/renderer"
 	"github.com/ViBiOh/kaamebott/pkg/model"
 )
@@ -76,7 +76,7 @@ func (a App) getCollectionID(ctx context.Context, collection string) (uint64, st
 func (a App) HasCollection(collection string) bool {
 	collectionID, _, err := a.getCollection(context.Background(), collection)
 	if err != nil {
-		logger.Error("check if collection exists: %s", err)
+		slog.Error("check if collection exists", "err", err)
 	}
 	return collectionID != 0
 }
