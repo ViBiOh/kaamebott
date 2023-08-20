@@ -45,13 +45,18 @@ type App struct {
 }
 
 // New creates new App from Config
-func New(website string, searchApp search.App, redisApp redis.Client, tracer trace.Tracer) App {
-	return App{
+func New(website string, searchApp search.App, redisApp redis.Client, tracerProvider trace.TracerProvider) App {
+	app := App{
 		website:     website,
-		tracer:      tracer,
 		searchApp:   searchApp,
 		redisClient: redisApp,
 	}
+
+	if tracerProvider != nil {
+		app.tracer = tracerProvider.Tracer("quote")
+	}
+
+	return app
 }
 
 // SlackCommand handler

@@ -77,9 +77,9 @@ func main() {
 	}
 
 	defer telemetryApp.Close(ctx)
-	request.AddOpenTelemetryToDefaultClient(telemetryApp.GetMeterProvider(), telemetryApp.GetTraceProvider())
+	request.AddOpenTelemetryToDefaultClient(telemetryApp.MeterProvider(), telemetryApp.TracerProvider())
 
-	quoteDB, err := db.New(ctx, dbConfig, telemetryApp.GetTracer("database"))
+	quoteDB, err := db.New(ctx, dbConfig, telemetryApp.TracerProvider())
 	if err != nil {
 		slog.Error("create database", "err", err)
 		os.Exit(1)
@@ -90,7 +90,7 @@ func main() {
 	appServer := server.New(appServerConfig)
 	healthApp := health.New(healthConfig, quoteDB.Ping)
 
-	rendererApp, err := renderer.New(rendererConfig, content, search.FuncMap, telemetryApp.GetMeter("renderer"), telemetryApp.GetTracer("renderer"))
+	rendererApp, err := renderer.New(rendererConfig, content, search.FuncMap, telemetryApp.MeterProvider(), telemetryApp.TracerProvider())
 	if err != nil {
 		slog.Error("create renderer", "err", err)
 		os.Exit(1)
@@ -98,7 +98,7 @@ func main() {
 
 	website := rendererApp.PublicURL("")
 
-	redisApp, err := redis.New(redisConfig, telemetryApp.GetMeterProvider(), telemetryApp.GetTraceProvider())
+	redisApp, err := redis.New(redisConfig, telemetryApp.MeterProvider(), telemetryApp.TracerProvider())
 	if err != nil {
 		slog.Error("create redis", "err", err)
 		os.Exit(1)
@@ -107,15 +107,15 @@ func main() {
 	defer redisApp.Close()
 
 	searchApp := search.New(searchConfig, quoteDB, rendererApp)
-	quoteApp := quote.New(website, searchApp, redisApp, telemetryApp.GetTracer("quote"))
+	quoteApp := quote.New(website, searchApp, redisApp, telemetryApp.TracerProvider())
 
-	discordApp, err := discord.New(discordConfig, website, quoteApp.DiscordHandler, telemetryApp.GetTracer("discord"))
+	discordApp, err := discord.New(discordConfig, website, quoteApp.DiscordHandler, telemetryApp.TracerProvider())
 	if err != nil {
 		slog.Error("create discord", "err", err)
 		os.Exit(1)
 	}
 
-	slackHandler := http.StripPrefix(slackPrefix, slack.New(slackConfig, quoteApp.SlackCommand, quoteApp.SlackInteract, telemetryApp.GetTracer("slack")).Handler())
+	slackHandler := http.StripPrefix(slackPrefix, slack.New(slackConfig, quoteApp.SlackCommand, quoteApp.SlackInteract, telemetryApp.TracerProvider()).Handler())
 	discordHandler := http.StripPrefix(discordPrefix, discordApp.Handler())
 	kaamebottHandler := rendererApp.Handler(searchApp.TemplateFunc)
 
