@@ -16,7 +16,7 @@ WHERE
   name = $1
 `
 
-func (a App) getCollection(ctx context.Context, name string) (id uint64, language string, err error) {
+func (s Service) getCollection(ctx context.Context, name string) (id uint64, language string, err error) {
 	scanner := func(row pgx.Row) error {
 		scanErr := row.Scan(&id, &language)
 		if scanErr == pgx.ErrNoRows {
@@ -25,6 +25,6 @@ func (a App) getCollection(ctx context.Context, name string) (id uint64, languag
 		return scanErr
 	}
 
-	err = a.dbApp.Get(ctx, scanner, getCollectionQuery, name)
+	err = s.db.Get(ctx, scanner, getCollectionQuery, name)
 	return
 }

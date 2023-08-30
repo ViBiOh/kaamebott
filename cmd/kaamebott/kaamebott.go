@@ -70,16 +70,16 @@ func main() {
 
 	ctx := context.Background()
 
-	telemetryApp, err := telemetry.New(ctx, telemetryConfig)
+	telemetryService, err := telemetry.New(ctx, telemetryConfig)
 	if err != nil {
 		slog.Error("create telemetry", "err", err)
 		os.Exit(1)
 	}
 
-	defer telemetryApp.Close(ctx)
-	request.AddOpenTelemetryToDefaultClient(telemetryApp.MeterProvider(), telemetryApp.TracerProvider())
+	defer telemetryService.Close(ctx)
+	request.AddOpenTelemetryToDefaultClient(telemetryService.MeterProvider(), telemetryService.TracerProvider())
 
-	quoteDB, err := db.New(ctx, dbConfig, telemetryApp.TracerProvider())
+	quoteDB, err := db.New(ctx, dbConfig, telemetryService.TracerProvider())
 	if err != nil {
 		slog.Error("create database", "err", err)
 		os.Exit(1)
@@ -88,36 +88,36 @@ func main() {
 	defer quoteDB.Close()
 
 	appServer := server.New(appServerConfig)
-	healthApp := health.New(healthConfig, quoteDB.Ping)
+	healthService := health.New(healthConfig, quoteDB.Ping)
 
-	rendererApp, err := renderer.New(rendererConfig, content, search.FuncMap, telemetryApp.MeterProvider(), telemetryApp.TracerProvider())
+	rendererService, err := renderer.New(rendererConfig, content, search.FuncMap, telemetryService.MeterProvider(), telemetryService.TracerProvider())
 	if err != nil {
 		slog.Error("create renderer", "err", err)
 		os.Exit(1)
 	}
 
-	website := rendererApp.PublicURL("")
+	website := rendererService.PublicURL("")
 
-	redisApp, err := redis.New(redisConfig, telemetryApp.MeterProvider(), telemetryApp.TracerProvider())
+	redisClient, err := redis.New(redisConfig, telemetryService.MeterProvider(), telemetryService.TracerProvider())
 	if err != nil {
 		slog.Error("create redis", "err", err)
 		os.Exit(1)
 	}
 
-	defer redisApp.Close()
+	defer redisClient.Close()
 
-	searchApp := search.New(searchConfig, quoteDB, rendererApp)
-	quoteApp := quote.New(website, searchApp, redisApp, telemetryApp.TracerProvider())
+	searchService := search.New(searchConfig, quoteDB, rendererService)
+	quoteService := quote.New(website, searchService, redisClient, telemetryService.TracerProvider())
 
-	discordApp, err := discord.New(discordConfig, website, quoteApp.DiscordHandler, telemetryApp.TracerProvider())
+	discordService, err := discord.New(discordConfig, website, quoteService.DiscordHandler, telemetryService.TracerProvider())
 	if err != nil {
 		slog.Error("create discord", "err", err)
 		os.Exit(1)
 	}
 
-	slackHandler := http.StripPrefix(slackPrefix, slack.New(slackConfig, quoteApp.SlackCommand, quoteApp.SlackInteract, telemetryApp.TracerProvider()).Handler())
-	discordHandler := http.StripPrefix(discordPrefix, discordApp.Handler())
-	kaamebottHandler := rendererApp.Handler(searchApp.TemplateFunc)
+	slackHandler := http.StripPrefix(slackPrefix, slack.New(slackConfig, quoteService.SlackCommand, quoteService.SlackInteract, telemetryService.TracerProvider()).Handler())
+	discordHandler := http.StripPrefix(discordPrefix, discordService.Handler())
+	kaamebottHandler := rendererService.Handler(searchService.TemplateFunc)
 
 	appHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if strings.HasPrefix(r.URL.Path, slackPrefix) {
@@ -129,10 +129,10 @@ func main() {
 		}
 	})
 
-	endCtx := healthApp.End(ctx)
+	endCtx := healthService.End(ctx)
 
-	go appServer.Start(endCtx, "http", httputils.Handler(appHandler, healthApp, recoverer.Middleware, telemetryApp.Middleware("http"), owasp.New(owaspConfig).Middleware, cors.New(corsConfig).Middleware))
+	go appServer.Start(endCtx, "http", httputils.Handler(appHandler, healthService, recoverer.Middleware, telemetryService.Middleware("http"), owasp.New(owaspConfig).Middleware, cors.New(corsConfig).Middleware))
 
-	healthApp.WaitForTermination(appServer.Done())
+	healthService.WaitForTermination(appServer.Done())
 	server.GracefulWait(appServer.Done())
 }

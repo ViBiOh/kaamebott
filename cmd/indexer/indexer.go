@@ -95,7 +95,7 @@ func readQuotes(filename string) ([]model.Quote, string, error) {
 	return quotes, path.Base(strings.TrimSuffix(reader.Name(), ".json")), nil
 }
 
-func getOrCreateCollection(ctx context.Context, quoteDB db.App, name, language string) (uint64, error) {
+func getOrCreateCollection(ctx context.Context, quoteDB db.Service, name, language string) (uint64, error) {
 	var collectionID uint64
 
 	if err := quoteDB.Get(ctx, func(row pgx.Row) error {
@@ -120,7 +120,7 @@ func getOrCreateCollection(ctx context.Context, quoteDB db.App, name, language s
 	return id, nil
 }
 
-func insertQuotes(ctx context.Context, quoteDB db.App, collectionID uint64, quotes []model.Quote) error {
+func insertQuotes(ctx context.Context, quoteDB db.Service, collectionID uint64, quotes []model.Quote) error {
 	quotesCount, index := len(quotes), 0
 
 	feedLine := func() ([]any, error) {

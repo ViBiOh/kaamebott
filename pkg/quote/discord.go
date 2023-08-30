@@ -41,44 +41,43 @@ var indexes = map[string]string{
 	telerealiteName:  telerealiteName,
 }
 
-// DiscordHandler handle discord request
-func (a App) DiscordHandler(ctx context.Context, webhook discord.InteractionRequest) (discord.InteractionResponse, func(context.Context) discord.InteractionResponse) {
+func (s Service) DiscordHandler(ctx context.Context, webhook discord.InteractionRequest) (discord.InteractionResponse, func(context.Context) discord.InteractionResponse) {
 	var err error
 
-	ctx, end := telemetry.StartSpan(ctx, a.tracer, "DiscordHandler")
+	ctx, end := telemetry.StartSpan(ctx, s.tracer, "DiscordHandler")
 	defer end(&err)
 
-	index, err := a.checkRequest(webhook)
+	index, err := s.checkRequest(webhook)
 	if err != nil {
 		return discord.NewEphemeral(false, err.Error()), nil
 	}
 
-	action, query, next, err := a.getQuery(ctx, webhook)
+	action, query, next, err := s.getQuery(ctx, webhook)
 	if err != nil {
 		return discord.NewEphemeral(false, err.Error()), nil
 	}
 
 	switch action {
 	case nextValue:
-		return a.handleSearch(ctx, index, query, next), nil
+		return s.handleSearch(ctx, index, query, next), nil
 
 	case sendValue:
-		quote, err := a.searchApp.GetByID(ctx, index, query)
+		quote, err := s.search.GetByID(ctx, index, query)
 		if err != nil {
 			return discord.NewError(true, err), nil
 		}
 
-		return a.quoteResponse(webhook.Member.User.ID, quote), nil
+		return s.quoteResponse(webhook.Member.User.ID, quote), nil
 
 	case cancelValue:
 		return discord.NewEphemeral(true, "Ok, not now."), nil
 
 	default:
-		return a.handleSearch(ctx, index, query, ""), nil
+		return s.handleSearch(ctx, index, query, ""), nil
 	}
 }
 
-func (a App) checkRequest(webhook discord.InteractionRequest) (string, error) {
+func (s Service) checkRequest(webhook discord.InteractionRequest) (string, error) {
 	var command string
 	switch webhook.Type {
 	case discord.MessageComponentInteraction:
@@ -95,11 +94,11 @@ func (a App) checkRequest(webhook discord.InteractionRequest) (string, error) {
 	return index, nil
 }
 
-func (a App) getQuery(ctx context.Context, webhook discord.InteractionRequest) (string, string, string, error) {
+func (s Service) getQuery(ctx context.Context, webhook discord.InteractionRequest) (string, string, string, error) {
 	switch webhook.Type {
 	case discord.MessageComponentInteraction:
 
-		values, err := discord.RestoreCustomID(ctx, a.redisClient, cachePrefix, webhook.Data.CustomID, []string{cancelAction})
+		values, err := discord.RestoreCustomID(ctx, s.redisClient, cachePrefix, webhook.Data.CustomID, []string{cancelAction})
 		if err != nil {
 			return "", "", "", fmt.Errorf("restore id: %w", err)
 		}
@@ -124,8 +123,8 @@ func (a App) getQuery(ctx context.Context, webhook discord.InteractionRequest) (
 	return "", "", "", nil
 }
 
-func (a App) handleSearch(ctx context.Context, index, query, last string) discord.InteractionResponse {
-	quote, err := a.searchApp.Search(ctx, index, query, last)
+func (s Service) handleSearch(ctx context.Context, index, query, last string) discord.InteractionResponse {
+	quote, err := s.search.Search(ctx, index, query, last)
 	if err != nil && !errors.Is(err, search.ErrNotFound) {
 		return discord.NewEphemeral(len(last) != 0, fmt.Sprintf("Oh, it's broken 😱. Reason: %s", err))
 	}
@@ -134,13 +133,13 @@ func (a App) handleSearch(ctx context.Context, index, query, last string) discor
 		return discord.NewEphemeral(len(last) != 0, fmt.Sprintf("We found nothing for `%s`", query))
 	}
 
-	return a.interactiveResponse(ctx, quote, len(last) != 0, query)
+	return s.interactiveResponse(ctx, quote, len(last) != 0, query)
 }
 
-func (a App) interactiveResponse(ctx context.Context, quote model.Quote, replace bool, recherche string) discord.InteractionResponse {
+func (s Service) interactiveResponse(ctx context.Context, quote model.Quote, replace bool, recherche string) discord.InteractionResponse {
 	var err error
 
-	ctx, end := telemetry.StartSpan(ctx, a.tracer, "interactiveResponse")
+	ctx, end := telemetry.StartSpan(ctx, s.tracer, "interactiveResponse")
 	defer end(&err)
 
 	webhookType := discord.ChannelMessageWithSource
@@ -152,7 +151,7 @@ func (a App) interactiveResponse(ctx context.Context, quote model.Quote, replace
 	sendValues.Add("action", sendValue)
 	sendValues.Add("id", quote.ID)
 
-	sendKey, err := discord.SaveCustomID(ctx, a.redisClient, cachePrefix, sendValues)
+	sendKey, err := discord.SaveCustomID(ctx, s.redisClient, cachePrefix, sendValues)
 	if err != nil {
 		return discord.NewError(replace, err)
 	}
@@ -162,12 +161,12 @@ func (a App) interactiveResponse(ctx context.Context, quote model.Quote, replace
 	nextValues.Add("id", quote.ID)
 	nextValues.Add("recherche", recherche)
 
-	nextKey, err := discord.SaveCustomID(ctx, a.redisClient, cachePrefix, nextValues)
+	nextKey, err := discord.SaveCustomID(ctx, s.redisClient, cachePrefix, nextValues)
 	if err != nil {
 		return discord.NewError(replace, err)
 	}
 
-	return discord.NewResponse(webhookType, "").Ephemeral().AddEmbed(a.getQuoteEmbed(quote)).AddComponent(
+	return discord.NewResponse(webhookType, "").Ephemeral().AddEmbed(s.getQuoteEmbed(quote)).AddComponent(
 		discord.Component{
 			Type: discord.ActionRowType,
 			Components: []discord.Component{
@@ -178,24 +177,24 @@ func (a App) interactiveResponse(ctx context.Context, quote model.Quote, replace
 		})
 }
 
-func (a App) quoteResponse(user string, quote model.Quote) discord.InteractionResponse {
-	return discord.NewResponse(discord.ChannelMessageWithSource, fmt.Sprintf("<@!%s> %s", user, i18n[quote.Language]["title"])).AddEmbed(a.getQuoteEmbed(quote))
+func (s Service) quoteResponse(user string, quote model.Quote) discord.InteractionResponse {
+	return discord.NewResponse(discord.ChannelMessageWithSource, fmt.Sprintf("<@!%s> %s", user, i18n[quote.Language]["title"])).AddEmbed(s.getQuoteEmbed(quote))
 }
 
-func (a App) getQuoteEmbed(quote model.Quote) discord.Embed {
+func (s Service) getQuoteEmbed(quote model.Quote) discord.Embed {
 	switch quote.Collection {
 	case kaamelottName:
-		return a.getKaamelottEmbeds(quote)
+		return s.getKaamelottEmbeds(quote)
 	case kaamelottGifCollection:
-		return a.getKaamelottGifEmbeds(quote)
+		return s.getKaamelottGifEmbeds(quote)
 	case oss117Name:
-		return a.getOss117Embeds(quote)
+		return s.getOss117Embeds(quote)
 	case officeName:
-		return a.getOfficeEmbeds(quote)
+		return s.getOfficeEmbeds(quote)
 	case filmsCollection:
-		return a.getFilmsEmbeds(quote)
+		return s.getFilmsEmbeds(quote)
 	case telerealiteName:
-		return a.getTelerealiteEmbeds(quote)
+		return s.getTelerealiteEmbeds(quote)
 	default:
 		return discord.Embed{
 			Title:       "Error",
@@ -204,19 +203,19 @@ func (a App) getQuoteEmbed(quote model.Quote) discord.Embed {
 	}
 }
 
-func (a App) getKaamelottEmbeds(quote model.Quote) discord.Embed {
+func (s Service) getKaamelottEmbeds(quote model.Quote) discord.Embed {
 	return discord.Embed{
 		Title:       quote.Context,
 		Description: quote.Value,
 		URL:         quote.URL,
-		Thumbnail:   discord.NewImage(fmt.Sprintf("%s/images/kaamelott.png", a.website)),
+		Thumbnail:   discord.NewImage(fmt.Sprintf("%s/images/kaamelott.png", s.website)),
 		Fields: []discord.Field{
 			discord.NewField("Personnage", quote.Character),
 		},
 	}
 }
 
-func (a App) getKaamelottGifEmbeds(quote model.Quote) discord.Embed {
+func (s Service) getKaamelottGifEmbeds(quote model.Quote) discord.Embed {
 	return discord.Embed{
 		Image: discord.NewImage(quote.URL),
 		Fields: []discord.Field{
@@ -225,26 +224,26 @@ func (a App) getKaamelottGifEmbeds(quote model.Quote) discord.Embed {
 	}
 }
 
-func (a App) getOss117Embeds(quote model.Quote) discord.Embed {
+func (s Service) getOss117Embeds(quote model.Quote) discord.Embed {
 	return discord.Embed{
 		Title:       quote.Context,
 		Description: quote.Value,
-		Thumbnail:   discord.NewImage(fmt.Sprintf("%s/images/oss117.png", a.website)),
+		Thumbnail:   discord.NewImage(fmt.Sprintf("%s/images/oss117.png", s.website)),
 		Fields: []discord.Field{
 			discord.NewField("Personnage", quote.Character),
 		},
 	}
 }
 
-func (a App) getOfficeEmbeds(quote model.Quote) discord.Embed {
+func (s Service) getOfficeEmbeds(quote model.Quote) discord.Embed {
 	return discord.Embed{
 		Title:       quote.Context,
 		Description: quote.Value,
-		Thumbnail:   discord.NewImage(fmt.Sprintf("%s/images/office.jpg", a.website)),
+		Thumbnail:   discord.NewImage(fmt.Sprintf("%s/images/office.jpg", s.website)),
 	}
 }
 
-func (a App) getFilmsEmbeds(quote model.Quote) discord.Embed {
+func (s Service) getFilmsEmbeds(quote model.Quote) discord.Embed {
 	return discord.Embed{
 		Title:       quote.Context,
 		Description: quote.Value,
@@ -254,7 +253,7 @@ func (a App) getFilmsEmbeds(quote model.Quote) discord.Embed {
 	}
 }
 
-func (a App) getTelerealiteEmbeds(quote model.Quote) discord.Embed {
+func (s Service) getTelerealiteEmbeds(quote model.Quote) discord.Embed {
 	return discord.Embed{
 		Title:       quote.Character,
 		Description: quote.Value,

@@ -36,40 +36,36 @@ var i18n map[string]map[string]string = map[string]map[string]string{
 	},
 }
 
-// App of package
-type App struct {
-	searchApp   search.App
+type Service struct {
+	search      search.Service
 	redisClient redis.Client
 	tracer      trace.Tracer
 	website     string
 }
 
-// New creates new App from Config
-func New(website string, searchApp search.App, redisApp redis.Client, tracerProvider trace.TracerProvider) App {
-	app := App{
+func New(website string, searchService search.Service, redisClient redis.Client, tracerProvider trace.TracerProvider) Service {
+	service := Service{
 		website:     website,
-		searchApp:   searchApp,
-		redisClient: redisApp,
+		search:      searchService,
+		redisClient: redisClient,
 	}
 
 	if tracerProvider != nil {
-		app.tracer = tracerProvider.Tracer("quote")
+		service.tracer = tracerProvider.Tracer("quote")
 	}
 
-	return app
+	return service
 }
 
-// SlackCommand handler
-func (a App) SlackCommand(ctx context.Context, payload slack.SlashPayload) slack.Response {
-	if !a.searchApp.HasCollection(payload.Command) {
+func (s Service) SlackCommand(ctx context.Context, payload slack.SlashPayload) slack.Response {
+	if !s.search.HasCollection(payload.Command) {
 		return slack.NewEphemeralMessage("unknown command")
 	}
 
-	return a.getQuoteBlock(ctx, payload.Command, payload.Text, "")
+	return s.getQuoteBlock(ctx, payload.Command, payload.Text, "")
 }
 
-// SlackInteract handler
-func (a App) SlackInteract(ctx context.Context, payload slack.InteractivePayload) slack.Response {
+func (s Service) SlackInteract(ctx context.Context, payload slack.InteractivePayload) slack.Response {
 	if len(payload.Actions) == 0 {
 		return slack.NewEphemeralMessage("No action provided")
 	}
@@ -80,12 +76,12 @@ func (a App) SlackInteract(ctx context.Context, payload slack.InteractivePayload
 	}
 
 	if action.ActionID == sendValue {
-		quote, err := a.searchApp.GetByID(ctx, action.BlockID, action.Value)
+		quote, err := s.search.GetByID(ctx, action.BlockID, action.Value)
 		if err != nil {
 			return slack.NewEphemeralMessage(fmt.Sprintf("find asked quote: %s", err))
 		}
 
-		return a.getQuoteResponse(quote, "", payload.User.ID)
+		return s.getQuoteResponse(quote, "", payload.User.ID)
 	}
 
 	if action.ActionID == nextValue {
@@ -94,16 +90,16 @@ func (a App) SlackInteract(ctx context.Context, payload slack.InteractivePayload
 			return slack.NewEphemeralMessage(fmt.Sprintf("button value seems wrong: %s", action.Value))
 		}
 
-		return a.getQuoteBlock(ctx, action.BlockID, action.Value[:lastIndex], action.Value[lastIndex+1:])
+		return s.getQuoteBlock(ctx, action.BlockID, action.Value[:lastIndex], action.Value[lastIndex+1:])
 	}
 
 	return slack.NewEphemeralMessage("We don't understand what to do.")
 }
 
-func (a App) getQuote(ctx context.Context, index, text string, last string) (model.Quote, error) {
-	quote, err := a.searchApp.Search(ctx, index, strings.TrimSpace(text), last)
+func (s Service) getQuote(ctx context.Context, index, text string, last string) (model.Quote, error) {
+	quote, err := s.search.Search(ctx, index, strings.TrimSpace(text), last)
 	if err != nil && err == search.ErrNotFound {
-		quote, err = a.searchApp.Random(ctx, index)
+		quote, err = s.search.Random(ctx, index)
 		if err != nil {
 			return model.Quote{}, err
 		}
@@ -112,17 +108,17 @@ func (a App) getQuote(ctx context.Context, index, text string, last string) (mod
 	return quote, err
 }
 
-func (a App) getQuoteBlock(ctx context.Context, index, text string, last string) slack.Response {
-	quote, err := a.getQuote(ctx, index, text, last)
+func (s Service) getQuoteBlock(ctx context.Context, index, text string, last string) slack.Response {
+	quote, err := s.getQuote(ctx, index, text, last)
 	if err != nil {
 		return slack.NewError(err)
 	}
 
-	return a.getQuoteResponse(quote, text, "")
+	return s.getQuoteResponse(quote, text, "")
 }
 
-func (a App) getQuoteResponse(quote model.Quote, query, user string) slack.Response {
-	content := a.getContentBlock(quote)
+func (s Service) getQuoteResponse(quote model.Quote, query, user string) slack.Response {
+	content := s.getContentBlock(quote)
 	if httpmodel.IsNil(content) {
 		if len(quote.Language) == 0 {
 			quote.Language = "english"
@@ -141,57 +137,57 @@ func (a App) getQuoteResponse(quote model.Quote, query, user string) slack.Respo
 	return slack.NewResponse("").WithDeleteOriginal().AddBlock(content).AddBlock(slack.NewContext().AddElement(slack.NewText(fmt.Sprintf("%s <@%s>", i18n[quote.Language]["title"], user))))
 }
 
-func (a App) getContentBlock(quote model.Quote) slack.Block {
+func (s Service) getContentBlock(quote model.Quote) slack.Block {
 	switch quote.Collection {
 	case "kaamelott":
-		return a.getKaamelottBlock(quote)
+		return s.getKaamelottBlock(quote)
 	case "kaamelott_gif":
-		return a.getKaamelottGifBlock(quote)
+		return s.getKaamelottGifBlock(quote)
 	case "oss117":
-		return a.getOss117Block(quote)
+		return s.getOss117Block(quote)
 	case "office":
-		return a.getOfficeBlock(quote)
+		return s.getOfficeBlock(quote)
 	case "films":
-		return a.getFilmBlock(quote)
+		return s.getFilmBlock(quote)
 	case "telerealite":
-		return a.getTelerealiteBlock(quote)
+		return s.getTelerealiteBlock(quote)
 	default:
 		return nil
 	}
 }
 
-func (a App) getKaamelottBlock(quote model.Quote) slack.Block {
+func (s Service) getKaamelottBlock(quote model.Quote) slack.Block {
 	text := slack.NewText(fmt.Sprintf("*<%s|%s>*\n\n_%s_ %s", quote.URL, quote.Context, quote.Character, quote.Value))
-	accessory := slack.NewAccessory(fmt.Sprintf("%s/images/kaamelott.png", a.website), "kaamelott")
+	accessory := slack.NewAccessory(fmt.Sprintf("%s/images/kaamelott.png", s.website), "kaamelott")
 
 	return slack.NewSection(text).WithAccessory(accessory)
 }
 
-func (a App) getKaamelottGifBlock(quote model.Quote) slack.Block {
+func (s Service) getKaamelottGifBlock(quote model.Quote) slack.Block {
 	return slack.NewAccessory(quote.URL, quote.Value)
 }
 
-func (a App) getOss117Block(quote model.Quote) slack.Block {
+func (s Service) getOss117Block(quote model.Quote) slack.Block {
 	text := slack.NewText(fmt.Sprintf("*%s*\n\n_%s_ %s", quote.Context, quote.Character, quote.Value))
-	accessory := slack.NewAccessory(fmt.Sprintf("%s/images/oss117.png", a.website), "oss117")
+	accessory := slack.NewAccessory(fmt.Sprintf("%s/images/oss117.png", s.website), "oss117")
 
 	return slack.NewSection(text).WithAccessory(accessory)
 }
 
-func (a App) getOfficeBlock(quote model.Quote) slack.Block {
+func (s Service) getOfficeBlock(quote model.Quote) slack.Block {
 	text := slack.NewText(fmt.Sprintf("*%s*\n\n%s", quote.Context, quote.Value))
-	accessory := slack.NewAccessory(fmt.Sprintf("%s/images/office.jpg", a.website), "office")
+	accessory := slack.NewAccessory(fmt.Sprintf("%s/images/office.jpg", s.website), "office")
 
 	return slack.NewSection(text).WithAccessory(accessory)
 }
 
-func (a App) getFilmBlock(quote model.Quote) slack.Block {
+func (s Service) getFilmBlock(quote model.Quote) slack.Block {
 	text := slack.NewText(fmt.Sprintf("*%s*\n\n_%s_\n%s", quote.Context, quote.Character, quote.Value))
 
 	return slack.NewSection(text)
 }
 
-func (a App) getTelerealiteBlock(quote model.Quote) slack.Block {
+func (s Service) getTelerealiteBlock(quote model.Quote) slack.Block {
 	text := slack.NewText(fmt.Sprintf("*%s*\n\n%s", quote.Character, quote.Value))
 
 	return slack.NewSection(text)

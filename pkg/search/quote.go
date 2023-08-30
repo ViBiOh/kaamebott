@@ -55,7 +55,7 @@ func computeQuoteQuery(collectionID uint64, language, last string, words []strin
 	return query.String(), args
 }
 
-func (a App) searchQuote(ctx context.Context, collectionID uint64, language, query, last string) (model.Quote, error) {
+func (s Service) searchQuote(ctx context.Context, collectionID uint64, language, query, last string) (model.Quote, error) {
 	var totalCount uint
 	var item model.Quote
 
@@ -76,7 +76,7 @@ func (a App) searchQuote(ctx context.Context, collectionID uint64, language, que
 	sqlQuery, sqlArgs := computeQuoteQuery(collectionID, language, last, words)
 	item.Language = language
 
-	return item, a.dbApp.Get(ctx, scanner, sqlQuery, sqlArgs...)
+	return item, s.db.Get(ctx, scanner, sqlQuery, sqlArgs...)
 }
 
 const getQuoteQuery = `
@@ -96,7 +96,7 @@ WHERE
   AND q.id = $2
 `
 
-func (a App) getQuote(ctx context.Context, collectionID uint64, language, id string) (model.Quote, error) {
+func (s Service) getQuote(ctx context.Context, collectionID uint64, language, id string) (model.Quote, error) {
 	var item model.Quote
 
 	scanner := func(row pgx.Row) error {
@@ -110,7 +110,7 @@ func (a App) getQuote(ctx context.Context, collectionID uint64, language, id str
 
 	item.Language = language
 
-	return item, a.dbApp.Get(ctx, scanner, getQuoteQuery, collectionID, id)
+	return item, s.db.Get(ctx, scanner, getQuoteQuery, collectionID, id)
 }
 
 const getRandomQuoteQuery = `
@@ -139,7 +139,7 @@ OFFSET floor(random() * (
 LIMIT 1
 `
 
-func (a App) getRandomQuote(ctx context.Context, collectionID uint64, language string) (model.Quote, error) {
+func (a Service) getRandomQuote(ctx context.Context, collectionID uint64, language string) (model.Quote, error) {
 	var item model.Quote
 
 	scanner := func(row pgx.Row) error {
@@ -152,5 +152,5 @@ func (a App) getRandomQuote(ctx context.Context, collectionID uint64, language s
 
 	item.Language = language
 
-	return item, a.dbApp.Get(ctx, scanner, getRandomQuoteQuery, collectionID)
+	return item, a.db.Get(ctx, scanner, getRandomQuoteQuery, collectionID)
 }

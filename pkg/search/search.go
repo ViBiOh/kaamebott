@@ -31,38 +31,36 @@ var (
 	FuncMap = template.FuncMap{}
 )
 
-// App of package
-type App struct {
-	dbApp       db.App
-	random      *rand.Rand
-	rendererApp *renderer.App
-	value       string
+type Service struct {
+	db       db.Service
+	random   *rand.Rand
+	renderer *renderer.Service
+	value    string
 }
 
-// Config of package
 type Config struct {
-	value *string
+	Value string
 }
 
-// Flags adds flags for configuring package
-func Flags(fs *flag.FlagSet, prefix string) Config {
-	return Config{
-		value: flags.New("Value", "Value key").Prefix(prefix).DocPrefix("search").String(fs, "value", nil),
+func Flags(fs *flag.FlagSet, prefix string) *Config {
+	var config Config
+
+	flags.New("Value", "Value key").Prefix(prefix).DocPrefix("search").StringVar(fs, &config.Value, "value", nil)
+
+	return &config
+}
+
+func New(config *Config, dbService db.Service, rendererService *renderer.Service) Service {
+	return Service{
+		value:    config.Value,
+		random:   rand.New(rand.NewSource(time.Now().Unix())),
+		db:       dbService,
+		renderer: rendererService,
 	}
 }
 
-// New creates new App from Config
-func New(config Config, dbApp db.App, rendererApp *renderer.App) App {
-	return App{
-		value:       *config.value,
-		random:      rand.New(rand.NewSource(time.Now().Unix())),
-		dbApp:       dbApp,
-		rendererApp: rendererApp,
-	}
-}
-
-func (a App) getCollectionID(ctx context.Context, collection string) (uint64, string, error) {
-	collectionID, language, err := a.getCollection(ctx, collection)
+func (s Service) getCollectionID(ctx context.Context, collection string) (uint64, string, error) {
+	collectionID, language, err := s.getCollection(ctx, collection)
 	if err != nil {
 		return 0, "", fmt.Errorf("get collection: %w", err)
 	}
@@ -72,46 +70,41 @@ func (a App) getCollectionID(ctx context.Context, collection string) (uint64, st
 	return collectionID, language, nil
 }
 
-// HasCollection determines if defined collection is configured
-func (a App) HasCollection(collection string) bool {
-	collectionID, _, err := a.getCollection(context.Background(), collection)
+func (s Service) HasCollection(collection string) bool {
+	collectionID, _, err := s.getCollection(context.Background(), collection)
 	if err != nil {
 		slog.Error("check if collection exists", "err", err)
 	}
 	return collectionID != 0
 }
 
-// GetByID find object by ID
-func (a App) GetByID(ctx context.Context, collection, id string) (model.Quote, error) {
-	collectionID, language, err := a.getCollectionID(ctx, collection)
+func (s Service) GetByID(ctx context.Context, collection, id string) (model.Quote, error) {
+	collectionID, language, err := s.getCollectionID(ctx, collection)
 	if err != nil {
 		return model.Quote{}, err
 	}
 
-	return a.getQuote(ctx, collectionID, language, id)
+	return s.getQuote(ctx, collectionID, language, id)
 }
 
-// Search for a quote
-func (a App) Search(ctx context.Context, collection, query, last string) (model.Quote, error) {
-	collectionID, language, err := a.getCollectionID(ctx, collection)
+func (s Service) Search(ctx context.Context, collection, query, last string) (model.Quote, error) {
+	collectionID, language, err := s.getCollectionID(ctx, collection)
 	if err != nil {
 		return model.Quote{}, err
 	}
 
-	return a.searchQuote(ctx, collectionID, language, query, last)
+	return s.searchQuote(ctx, collectionID, language, query, last)
 }
 
-// Random quote
-func (a App) Random(ctx context.Context, collection string) (model.Quote, error) {
-	collectionID, language, err := a.getCollectionID(ctx, collection)
+func (s Service) Random(ctx context.Context, collection string) (model.Quote, error) {
+	collectionID, language, err := s.getCollectionID(ctx, collection)
 	if err != nil {
 		return model.Quote{}, err
 	}
 
-	return a.getRandomQuote(ctx, collectionID, language)
+	return s.getRandomQuote(ctx, collectionID, language)
 }
 
-// TemplateFunc used for rendering GUI
-func (a App) TemplateFunc(w http.ResponseWriter, r *http.Request) (renderer.Page, error) {
+func (s Service) TemplateFunc(w http.ResponseWriter, r *http.Request) (renderer.Page, error) {
 	return renderer.NewPage("public", http.StatusOK, nil), nil
 }
