@@ -5,10 +5,10 @@ go 1.21
 require (
 	github.com/ViBiOh/ChatPotte v0.3.3
 	github.com/ViBiOh/flags v1.4.1
-	github.com/ViBiOh/httputils/v4 v4.64.2
+	github.com/ViBiOh/httputils/v4 v4.64.4
 	github.com/jackc/pgx/v5 v5.4.3
 	go.opentelemetry.io/otel/trace v1.17.0
-	golang.org/x/text v0.12.0
+	golang.org/x/text v0.13.0
 )
 
 require (

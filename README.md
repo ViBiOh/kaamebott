@@ -59,7 +59,7 @@ Usage of kaamebott:
   --discordClientSecret   string        [discord] Client Secret ${KAAMEBOTT_DISCORD_CLIENT_SECRET}
   --discordPublicKey      string        [discord] Public Key ${KAAMEBOTT_DISCORD_PUBLIC_KEY}
   --frameOptions          string        [owasp] X-Frame-Options ${KAAMEBOTT_FRAME_OPTIONS} (default "deny")
-  --graceDuration         duration      [http] Grace duration when SIGTERM received ${KAAMEBOTT_GRACE_DURATION} (default 30s)
+  --graceDuration         duration      [http] Grace duration when signal received ${KAAMEBOTT_GRACE_DURATION} (default 30s)
   --hsts                                [owasp] Indicate Strict Transport Security ${KAAMEBOTT_HSTS} (default true)
   --idleTimeout           duration      [server] Idle Timeout ${KAAMEBOTT_IDLE_TIMEOUT} (default 2m0s)
   --key                   string        [server] Key file ${KAAMEBOTT_KEY}
@@ -75,7 +75,6 @@ Usage of kaamebott:
   --publicURL             string        Public URL ${KAAMEBOTT_PUBLIC_URL} (default "https://kaamebott.vibioh.fr")
   --readTimeout           duration      [server] Read Timeout ${KAAMEBOTT_READ_TIMEOUT} (default 5s)
   --redisAddress          string slice  [redis] Redis Address host:port (blank to disable) ${KAAMEBOTT_REDIS_ADDRESS}, as a string slice, environment variable separated by "," (default [127.0.0.1:6379])
-  --redisAlias            string        [redis] Connection alias, for metric ${KAAMEBOTT_REDIS_ALIAS}
   --redisDatabase         int           [redis] Redis Database ${KAAMEBOTT_REDIS_DATABASE} (default 0)
   --redisMinIdleConn      int           [redis] Redis Minimum Idle Connections ${KAAMEBOTT_REDIS_MIN_IDLE_CONN} (default 0)
   --redisPassword         string        [redis] Redis Password, if any ${KAAMEBOTT_REDIS_PASSWORD}
