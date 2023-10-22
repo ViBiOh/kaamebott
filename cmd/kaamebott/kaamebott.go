@@ -88,7 +88,7 @@ func main() {
 	defer quoteDB.Close()
 
 	appServer := server.New(appServerConfig)
-	healthService := health.New(healthConfig, quoteDB.Ping)
+	healthService := health.New(ctx, healthConfig, quoteDB.Ping)
 
 	rendererService, err := renderer.New(rendererConfig, content, search.FuncMap, telemetryService.MeterProvider(), telemetryService.TracerProvider())
 	if err != nil {
@@ -129,10 +129,9 @@ func main() {
 		}
 	})
 
-	endCtx := healthService.End(ctx)
-
-	go appServer.Start(endCtx, "http", httputils.Handler(appHandler, healthService, recoverer.Middleware, telemetryService.Middleware("http"), owasp.New(owaspConfig).Middleware, cors.New(corsConfig).Middleware))
+	go appServer.Start(healthService.EndCtx(), "http", httputils.Handler(appHandler, healthService, recoverer.Middleware, telemetryService.Middleware("http"), owasp.New(owaspConfig).Middleware, cors.New(corsConfig).Middleware))
 
 	healthService.WaitForTermination(appServer.Done())
-	server.GracefulWait(appServer.Done())
+
+	appServer.Stop(ctx)
 }
