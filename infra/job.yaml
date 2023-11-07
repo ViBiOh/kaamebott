@@ -8,6 +8,7 @@ metadata:
     app.kubernetes.io/managed-by: kustomize
     app.kubernetes.io/version: latest
     k8s-cleaner: "true"
+
 spec:
   backoffLimit: 3
   template:
