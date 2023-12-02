@@ -70,10 +70,10 @@ func (s Service) getCollectionID(ctx context.Context, collection string) (uint64
 	return collectionID, language, nil
 }
 
-func (s Service) HasCollection(collection string) bool {
-	collectionID, _, err := s.getCollection(context.Background(), collection)
+func (s Service) HasCollection(ctx context.Context, collection string) bool {
+	collectionID, _, err := s.getCollection(ctx, collection)
 	if err != nil {
-		slog.Error("check if collection exists", "err", err)
+		slog.ErrorContext(ctx, "check if collection exists", "err", err)
 	}
 	return collectionID != 0
 }

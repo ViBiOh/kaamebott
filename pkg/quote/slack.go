@@ -58,7 +58,7 @@ func New(website string, searchService search.Service, redisClient redis.Client,
 }
 
 func (s Service) SlackCommand(ctx context.Context, payload slack.SlashPayload) slack.Response {
-	if !s.search.HasCollection(payload.Command) {
+	if !s.search.HasCollection(ctx, payload.Command) {
 		return slack.NewEphemeralMessage("unknown command")
 	}
 

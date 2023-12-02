@@ -5,9 +5,9 @@ go 1.21
 toolchain go1.21.0
 
 require (
-	github.com/ViBiOh/ChatPotte v0.3.3
+	github.com/ViBiOh/ChatPotte v0.4.0
 	github.com/ViBiOh/flags v1.4.1
-	github.com/ViBiOh/httputils/v4 v4.69.0
+	github.com/ViBiOh/httputils/v4 v4.69.3
 	github.com/jackc/pgx/v5 v5.5.0
 	go.opentelemetry.io/otel/trace v1.21.0
 	golang.org/x/text v0.14.0
@@ -23,7 +23,7 @@ require (
 	github.com/golang/protobuf v1.5.3 // indirect
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.18.1 // indirect
 	github.com/jackc/pgpassfile v1.0.0 // indirect
-	github.com/jackc/pgservicefile v0.0.0-20221227161230-091c0ba34f0a // indirect
+	github.com/jackc/pgservicefile v0.0.0-20231201235250-de7065d80cb9 // indirect
 	github.com/jackc/puddle/v2 v2.2.1 // indirect
 	github.com/klauspost/cpuid/v2 v2.2.6 // indirect
 	github.com/redis/go-redis/extra/rediscmd/v9 v9.0.5 // indirect

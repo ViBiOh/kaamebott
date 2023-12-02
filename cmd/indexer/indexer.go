@@ -36,15 +36,15 @@ func main() {
 
 	quoteDB, err := db.New(ctx, dbConfig, nil)
 	if err != nil {
-		slog.Error("create db", "err", err)
+		slog.ErrorContext(ctx, "create db", "err", err)
 		os.Exit(1)
 	}
 
 	defer quoteDB.Close()
 
-	quotes, collectionName, err := readQuotes(*inputFile)
+	quotes, collectionName, err := readQuotes(ctx, *inputFile)
 	if err != nil {
-		slog.Error("read quote", "err", err)
+		slog.ErrorContext(ctx, "read quote", "err", err)
 		os.Exit(1)
 	}
 
@@ -68,14 +68,14 @@ func main() {
 
 		return nil
 	}); err != nil {
-		slog.Error("update quotes", "err", err)
+		slog.ErrorContext(ctx, "update quotes", "err", err)
 		os.Exit(1)
 	}
 
 	slog.Info("Collection indexed", "collection", collectionName)
 }
 
-func readQuotes(filename string) ([]model.Quote, string, error) {
+func readQuotes(ctx context.Context, filename string) ([]model.Quote, string, error) {
 	reader, err := os.OpenFile(filename, os.O_RDONLY, 0o600)
 	if err != nil {
 		return nil, "", fmt.Errorf("open file: %w", err)
@@ -83,7 +83,7 @@ func readQuotes(filename string) ([]model.Quote, string, error) {
 
 	defer func() {
 		if closeErr := reader.Close(); closeErr != nil {
-			slog.Error("close", "err", closeErr, "item", filename, "fn", "indexer.readQuotes")
+			slog.ErrorContext(ctx, "close", "err", closeErr, "item", filename, "fn", "indexer.readQuotes")
 		}
 	}()
 
