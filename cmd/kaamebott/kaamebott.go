@@ -72,7 +72,7 @@ func main() {
 
 	telemetryService, err := telemetry.New(ctx, telemetryConfig)
 	if err != nil {
-		slog.ErrorContext(ctx, "create telemetry", "err", err)
+		slog.ErrorContext(ctx, "create telemetry", "error", err)
 		os.Exit(1)
 	}
 
@@ -83,7 +83,7 @@ func main() {
 
 	quoteDB, err := db.New(ctx, dbConfig, telemetryService.TracerProvider())
 	if err != nil {
-		slog.ErrorContext(ctx, "create database", "err", err)
+		slog.ErrorContext(ctx, "create database", "error", err)
 		os.Exit(1)
 	}
 
@@ -94,7 +94,7 @@ func main() {
 
 	rendererService, err := renderer.New(rendererConfig, content, search.FuncMap, telemetryService.MeterProvider(), telemetryService.TracerProvider())
 	if err != nil {
-		slog.ErrorContext(ctx, "create renderer", "err", err)
+		slog.ErrorContext(ctx, "create renderer", "error", err)
 		os.Exit(1)
 	}
 
@@ -102,7 +102,7 @@ func main() {
 
 	redisClient, err := redis.New(redisConfig, telemetryService.MeterProvider(), telemetryService.TracerProvider())
 	if err != nil {
-		slog.ErrorContext(ctx, "create redis", "err", err)
+		slog.ErrorContext(ctx, "create redis", "error", err)
 		os.Exit(1)
 	}
 
@@ -113,7 +113,7 @@ func main() {
 
 	discordService, err := discord.New(discordConfig, website, quoteService.DiscordHandler, telemetryService.TracerProvider())
 	if err != nil {
-		slog.ErrorContext(ctx, "create discord", "err", err)
+		slog.ErrorContext(ctx, "create discord", "error", err)
 		os.Exit(1)
 	}
 

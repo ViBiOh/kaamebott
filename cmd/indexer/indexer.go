@@ -36,7 +36,7 @@ func main() {
 
 	quoteDB, err := db.New(ctx, dbConfig, nil)
 	if err != nil {
-		slog.ErrorContext(ctx, "create db", "err", err)
+		slog.ErrorContext(ctx, "create db", "error", err)
 		os.Exit(1)
 	}
 
@@ -44,7 +44,7 @@ func main() {
 
 	quotes, collectionName, err := readQuotes(ctx, *inputFile)
 	if err != nil {
-		slog.ErrorContext(ctx, "read quote", "err", err)
+		slog.ErrorContext(ctx, "read quote", "error", err)
 		os.Exit(1)
 	}
 
@@ -68,7 +68,7 @@ func main() {
 
 		return nil
 	}); err != nil {
-		slog.ErrorContext(ctx, "update quotes", "err", err)
+		slog.ErrorContext(ctx, "update quotes", "error", err)
 		os.Exit(1)
 	}
 
@@ -83,7 +83,7 @@ func readQuotes(ctx context.Context, filename string) ([]model.Quote, string, er
 
 	defer func() {
 		if closeErr := reader.Close(); closeErr != nil {
-			slog.ErrorContext(ctx, "close", "err", closeErr, "item", filename, "fn", "indexer.readQuotes")
+			slog.ErrorContext(ctx, "close", "error", closeErr, "item", filename, "fn", "indexer.readQuotes")
 		}
 	}()
 
