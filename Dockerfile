@@ -11,7 +11,10 @@ HEALTHCHECK --retries=10 CMD [ "/kaamebott", "-url", "http://localhost:1080/heal
 ENTRYPOINT [ "/kaamebott" ]
 
 ARG VERSION
-ENV VERSION=${VERSION}
+ENV VERSION ${VERSION}
+
+ARG GIT_SHA
+ENV GIT_SHA ${GIT_SHA}
 
 ARG TARGETOS
 ARG TARGETARCH
