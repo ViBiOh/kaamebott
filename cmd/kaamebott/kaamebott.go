@@ -5,7 +5,6 @@ import (
 	"embed"
 	"flag"
 	"log"
-	"log/slog"
 	"net/http"
 	"os"
 	"strings"
@@ -71,10 +70,7 @@ func main() {
 	ctx := context.Background()
 
 	telemetryService, err := telemetry.New(ctx, telemetryConfig)
-	if err != nil {
-		slog.ErrorContext(ctx, "create telemetry", "error", err)
-		os.Exit(1)
-	}
+	logger.FatalfOnErr(ctx, err, "create telemetry")
 
 	defer telemetryService.Close(ctx)
 
@@ -82,10 +78,7 @@ func main() {
 	request.AddOpenTelemetryToDefaultClient(telemetryService.MeterProvider(), telemetryService.TracerProvider())
 
 	quoteDB, err := db.New(ctx, dbConfig, telemetryService.TracerProvider())
-	if err != nil {
-		slog.ErrorContext(ctx, "create database", "error", err)
-		os.Exit(1)
-	}
+	logger.FatalfOnErr(ctx, err, "create database")
 
 	defer quoteDB.Close()
 
@@ -93,18 +86,12 @@ func main() {
 	healthService := health.New(ctx, healthConfig, quoteDB.Ping)
 
 	rendererService, err := renderer.New(rendererConfig, content, search.FuncMap, telemetryService.MeterProvider(), telemetryService.TracerProvider())
-	if err != nil {
-		slog.ErrorContext(ctx, "create renderer", "error", err)
-		os.Exit(1)
-	}
+	logger.FatalfOnErr(ctx, err, "create renderer")
 
 	website := rendererService.PublicURL("")
 
 	redisClient, err := redis.New(redisConfig, telemetryService.MeterProvider(), telemetryService.TracerProvider())
-	if err != nil {
-		slog.ErrorContext(ctx, "create redis", "error", err)
-		os.Exit(1)
-	}
+	logger.FatalfOnErr(ctx, err, "create redis")
 
 	defer redisClient.Close()
 
@@ -112,10 +99,7 @@ func main() {
 	quoteService := quote.New(website, searchService, redisClient, telemetryService.TracerProvider())
 
 	discordService, err := discord.New(discordConfig, website, quoteService.DiscordHandler, telemetryService.TracerProvider())
-	if err != nil {
-		slog.ErrorContext(ctx, "create discord", "error", err)
-		os.Exit(1)
-	}
+	logger.FatalfOnErr(ctx, err, "create discord")
 
 	slackHandler := http.StripPrefix(slackPrefix, slack.New(slackConfig, quoteService.SlackCommand, quoteService.SlackInteract, telemetryService.TracerProvider()).Handler())
 	discordHandler := http.StripPrefix(discordPrefix, discordService.Handler())

@@ -15,6 +15,7 @@ import (
 	"github.com/ViBiOh/flags"
 	"github.com/ViBiOh/httputils/v4/pkg/db"
 	"github.com/ViBiOh/httputils/v4/pkg/hash"
+	"github.com/ViBiOh/httputils/v4/pkg/logger"
 	"github.com/ViBiOh/kaamebott/pkg/model"
 	"github.com/jackc/pgx/v5"
 )
@@ -35,18 +36,12 @@ func main() {
 	ctx := context.Background()
 
 	quoteDB, err := db.New(ctx, dbConfig, nil)
-	if err != nil {
-		slog.ErrorContext(ctx, "create db", "error", err)
-		os.Exit(1)
-	}
+	logger.FatalfOnErr(ctx, err, "create db")
 
 	defer quoteDB.Close()
 
 	quotes, collectionName, err := readQuotes(ctx, *inputFile)
-	if err != nil {
-		slog.ErrorContext(ctx, "read quote", "error", err)
-		os.Exit(1)
-	}
+	logger.FatalfOnErr(ctx, err, "read quote")
 
 	if err := quoteDB.DoAtomic(ctx, func(ctx context.Context) error {
 		collectionID, err := getOrCreateCollection(ctx, quoteDB, collectionName, *language)
