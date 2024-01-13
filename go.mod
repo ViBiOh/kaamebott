@@ -7,7 +7,7 @@ toolchain go1.21.0
 require (
 	github.com/ViBiOh/ChatPotte v0.4.1
 	github.com/ViBiOh/flags v1.5.0
-	github.com/ViBiOh/httputils/v4 v4.70.3
+	github.com/ViBiOh/httputils/v4 v4.71.0
 	github.com/jackc/pgx/v5 v5.5.1
 	go.opentelemetry.io/otel/trace v1.21.0
 	golang.org/x/text v0.14.0
