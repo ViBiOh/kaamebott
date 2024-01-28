@@ -73,7 +73,7 @@ func (s Service) getCollectionID(ctx context.Context, collection string) (uint64
 func (s Service) HasCollection(ctx context.Context, collection string) bool {
 	collectionID, _, err := s.getCollection(ctx, collection)
 	if err != nil {
-		slog.ErrorContext(ctx, "check if collection exists", "error", err)
+		slog.LogAttrs(ctx, slog.LevelError, "check if collection exists", slog.Any("error", err))
 	}
 	return collectionID != 0
 }

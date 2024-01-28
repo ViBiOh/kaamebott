@@ -63,11 +63,11 @@ func main() {
 
 		return nil
 	}); err != nil {
-		slog.ErrorContext(ctx, "update quotes", "error", err)
+		slog.LogAttrs(ctx, slog.LevelError, "update quotes", slog.Any("error", err))
 		os.Exit(1)
 	}
 
-	slog.Info("Collection indexed", "collection", collectionName)
+	slog.LogAttrs(ctx, slog.LevelInfo, "Collection indexed", slog.String("collection", collectionName))
 }
 
 func readQuotes(ctx context.Context, filename string) ([]model.Quote, string, error) {
@@ -78,7 +78,7 @@ func readQuotes(ctx context.Context, filename string) ([]model.Quote, string, er
 
 	defer func() {
 		if closeErr := reader.Close(); closeErr != nil {
-			slog.ErrorContext(ctx, "close", "error", closeErr, "item", filename, "fn", "indexer.readQuotes")
+			slog.LogAttrs(ctx, slog.LevelError, "close", slog.String("fn", "indexer.readQuotes"), slog.String("item", filename), slog.Any("error", closeErr))
 		}
 	}()
 
