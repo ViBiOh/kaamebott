@@ -145,12 +145,6 @@ func (s Service) getContentBlock(quote model.Quote) slack.Block {
 		return s.getKaamelottGifBlock(quote)
 	case "oss117":
 		return s.getOss117Block(quote)
-	case "office":
-		return s.getOfficeBlock(quote)
-	case "films":
-		return s.getFilmBlock(quote)
-	case "telerealite":
-		return s.getTelerealiteBlock(quote)
 	default:
 		return nil
 	}
@@ -172,23 +166,4 @@ func (s Service) getOss117Block(quote model.Quote) slack.Block {
 	accessory := slack.NewAccessory(fmt.Sprintf("%s/images/oss117.png", s.website), "oss117")
 
 	return slack.NewSection(text).WithAccessory(accessory)
-}
-
-func (s Service) getOfficeBlock(quote model.Quote) slack.Block {
-	text := slack.NewText(fmt.Sprintf("*%s*\n\n%s", quote.Context, quote.Value))
-	accessory := slack.NewAccessory(fmt.Sprintf("%s/images/office.jpg", s.website), "office")
-
-	return slack.NewSection(text).WithAccessory(accessory)
-}
-
-func (s Service) getFilmBlock(quote model.Quote) slack.Block {
-	text := slack.NewText(fmt.Sprintf("*%s*\n\n_%s_\n%s", quote.Context, quote.Character, quote.Value))
-
-	return slack.NewSection(text)
-}
-
-func (s Service) getTelerealiteBlock(quote model.Quote) slack.Block {
-	text := slack.NewText(fmt.Sprintf("*%s*\n\n%s", quote.Character, quote.Value))
-
-	return slack.NewSection(text)
 }

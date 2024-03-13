@@ -21,10 +21,6 @@ const (
 	kaamelottGifName       = "kaamelottgif"
 	kaamelottGifCollection = "kaamelott_gif"
 	oss117Name             = "oss117"
-	officeName             = "office"
-	filmsName              = "citation"
-	filmsCollection        = "films"
-	telerealiteName        = "telerealite"
 )
 
 var (
@@ -36,9 +32,6 @@ var indexes = map[string]string{
 	kaamelottName:    kaamelottName,
 	kaamelottGifName: kaamelottGifCollection,
 	oss117Name:       oss117Name,
-	officeName:       officeName,
-	filmsName:        filmsCollection,
-	telerealiteName:  telerealiteName,
 }
 
 func (s Service) DiscordHandler(ctx context.Context, webhook discord.InteractionRequest) (discord.InteractionResponse, func(context.Context) discord.InteractionResponse) {
@@ -189,12 +182,6 @@ func (s Service) getQuoteEmbed(quote model.Quote) discord.Embed {
 		return s.getKaamelottGifEmbeds(quote)
 	case oss117Name:
 		return s.getOss117Embeds(quote)
-	case officeName:
-		return s.getOfficeEmbeds(quote)
-	case filmsCollection:
-		return s.getFilmsEmbeds(quote)
-	case telerealiteName:
-		return s.getTelerealiteEmbeds(quote)
 	default:
 		return discord.Embed{
 			Title:       "Error",
@@ -232,30 +219,5 @@ func (s Service) getOss117Embeds(quote model.Quote) discord.Embed {
 		Fields: []discord.Field{
 			discord.NewField("Personnage", quote.Character),
 		},
-	}
-}
-
-func (s Service) getOfficeEmbeds(quote model.Quote) discord.Embed {
-	return discord.Embed{
-		Title:       quote.Context,
-		Description: quote.Value,
-		Thumbnail:   discord.NewImage(fmt.Sprintf("%s/images/office.jpg", s.website)),
-	}
-}
-
-func (s Service) getFilmsEmbeds(quote model.Quote) discord.Embed {
-	return discord.Embed{
-		Title:       quote.Context,
-		Description: quote.Value,
-		Fields: []discord.Field{
-			discord.NewField("Personnage(s)", quote.Character),
-		},
-	}
-}
-
-func (s Service) getTelerealiteEmbeds(quote model.Quote) discord.Embed {
-	return discord.Embed{
-		Title:       quote.Character,
-		Description: quote.Value,
 	}
 }

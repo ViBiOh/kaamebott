@@ -70,18 +70,6 @@ spec:
                         "required": true
                       }
                     ]
-                  },
-                  "office": {
-                    "name": "office",
-                    "description": "A citation from The Office",
-                    "options": [
-                      {
-                        "name": "recherche",
-                        "description": "A keyword to refine search",
-                        "type": 3,
-                        "required": true
-                      }
-                    ]
                   }
                 }
             - name: DISCORD_LOGGER_JSON
