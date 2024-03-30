@@ -37,10 +37,10 @@ var i18n map[string]map[string]string = map[string]map[string]string{
 }
 
 type Service struct {
-	search      search.Service
 	redisClient redis.Client
 	tracer      trace.Tracer
 	website     string
+	search      search.Service
 }
 
 func New(website string, searchService search.Service, redisClient redis.Client, tracerProvider trace.TracerProvider) Service {
