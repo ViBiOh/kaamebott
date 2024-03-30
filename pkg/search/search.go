@@ -32,10 +32,10 @@ var (
 )
 
 type Service struct {
-	db       db.Service
 	random   *rand.Rand
 	renderer *renderer.Service
 	value    string
+	db       db.Service
 }
 
 type Config struct {
