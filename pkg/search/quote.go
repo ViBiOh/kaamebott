@@ -16,6 +16,7 @@ SELECT
   q.character,
   q.context,
   q.url,
+  q.image,,
   c.name,
   count(1) OVER() AS full_count
 FROM
@@ -60,7 +61,7 @@ func (s Service) searchQuote(ctx context.Context, collectionID uint64, language,
 	var item model.Quote
 
 	scanner := func(row pgx.Row) error {
-		err := row.Scan(&item.ID, &item.Value, &item.Character, &item.Context, &item.URL, &item.Collection, &totalCount)
+		err := row.Scan(&item.ID, &item.Value, &item.Character, &item.Context, &item.URL, &item.Image, &item.Collection, &totalCount)
 
 		if err == pgx.ErrNoRows {
 			return nil
@@ -86,6 +87,7 @@ SELECT
   q.character,
   q.context,
   q.url,
+  q.image,
   c.name
 FROM
   kaamebott.quote q
@@ -100,7 +102,7 @@ func (s Service) getQuote(ctx context.Context, collectionID uint64, language, id
 	var item model.Quote
 
 	scanner := func(row pgx.Row) error {
-		err := row.Scan(&item.ID, &item.Value, &item.Character, &item.Context, &item.URL, &item.Collection)
+		err := row.Scan(&item.ID, &item.Value, &item.Character, &item.Context, &item.URL, &item.Image, &item.Collection)
 
 		if err == pgx.ErrNoRows {
 			return nil
@@ -120,6 +122,7 @@ SELECT
   q.character,
   q.context,
   q.url,
+  q.image,
   c.name
 FROM
   kaamebott.quote q
@@ -143,7 +146,7 @@ func (a Service) getRandomQuote(ctx context.Context, collectionID uint64, langua
 	var item model.Quote
 
 	scanner := func(row pgx.Row) error {
-		err := row.Scan(&item.ID, &item.Value, &item.Character, &item.Context, &item.URL, &item.Collection)
+		err := row.Scan(&item.ID, &item.Value, &item.Character, &item.Context, &item.URL, &item.Image, &item.Collection)
 		if err == pgx.ErrNoRows {
 			return nil
 		}
