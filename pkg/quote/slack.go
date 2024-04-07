@@ -141,10 +141,10 @@ func (s Service) getContentBlock(quote model.Quote) slack.Block {
 	switch quote.Collection {
 	case "kaamelott":
 		return s.getKaamelottBlock(quote)
-	case "kaamelott_gif":
-		return s.getKaamelottGifBlock(quote)
+
 	case "oss117":
 		return s.getOss117Block(quote)
+
 	default:
 		return nil
 	}
@@ -152,13 +152,16 @@ func (s Service) getContentBlock(quote model.Quote) slack.Block {
 
 func (s Service) getKaamelottBlock(quote model.Quote) slack.Block {
 	text := slack.NewText(fmt.Sprintf("*<%s|%s>*\n\n_%s_ %s", quote.URL, quote.Context, quote.Character, quote.Value))
-	accessory := slack.NewAccessory(fmt.Sprintf("%s/images/kaamelott.png", s.website), "kaamelott")
+
+	var accessory *slack.Accessory
+
+	if len(quote.Image) != 0 {
+		accessory = slack.NewAccessory(quote.Image, quote.Value)
+	} else {
+		accessory = slack.NewAccessory(fmt.Sprintf("%s/images/kaamelott.png", s.website), "kaamelott")
+	}
 
 	return slack.NewSection(text).WithAccessory(accessory)
-}
-
-func (s Service) getKaamelottGifBlock(quote model.Quote) slack.Block {
-	return slack.NewAccessory(quote.URL, quote.Value)
 }
 
 func (s Service) getOss117Block(quote model.Quote) slack.Block {

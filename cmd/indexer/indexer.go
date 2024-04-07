@@ -20,12 +20,25 @@ import (
 	"github.com/jackc/pgx/v5"
 )
 
+var characterMapping = map[string]string{
+	"attilachefdeshuns":   "attila",
+	"breccanlartisan":     "breccan",
+	"buzitlebarde":        "lebarde",
+	"caiuscamillus":       "caius",
+	"lancelotdulac":       "lancelot",
+	"linterpreteburgonde": "linterprete",
+	"lothdorcanie":        "loth",
+	"mevanwi":             "mevanoui",
+	"monseigneurboniface": "levequeboniface",
+}
+
 func main() {
 	fs := flag.NewFlagSet("indexer", flag.ExitOnError)
 	fs.Usage = flags.Usage(fs)
 
 	inputFile := flags.New("input", "JSON File").DocPrefix("indexer").String(fs, "", nil)
 	language := flags.New("language", "Language for tsvector").DocPrefix("indexer").String(fs, "french", nil)
+	enrich := flags.New("enrich", "Enrich existing collection").DocPrefix("indexer").Bool(fs, false, nil)
 
 	dbConfig := db.Flags(fs, "db")
 
@@ -43,12 +56,20 @@ func main() {
 	quotes, collectionName, err := readQuotes(ctx, *inputFile)
 	logger.FatalfOnErr(ctx, err, "read quote")
 
-	if err := quoteDB.DoAtomic(ctx, func(ctx context.Context) error {
-		collectionID, err := getOrCreateCollection(ctx, quoteDB, collectionName, *language)
-		if err != nil {
-			return fmt.Errorf("get or create collection: %w", err)
-		}
+	collectionID, err := getOrCreateCollection(ctx, quoteDB, collectionName, *language)
+	logger.FatalfOnErr(ctx, err, "get or create collection")
 
+	if !*enrich {
+		logger.FatalfOnErr(ctx, replaceQuotes(ctx, quoteDB, collectionID, language, quotes), "replace collection")
+	} else {
+		logger.FatalfOnErr(ctx, enrichQuotes(ctx, quoteDB, collectionID, language, quotes), "replace collection")
+	}
+
+	slog.LogAttrs(ctx, slog.LevelInfo, "Collection indexed", slog.String("collection", collectionName))
+}
+
+func replaceQuotes(ctx context.Context, quoteDB db.Service, collectionID uint64, language *string, quotes []model.Quote) error {
+	return quoteDB.DoAtomic(ctx, func(ctx context.Context) error {
 		if err := quoteDB.Exec(ctx, "DELETE FROM kaamebott.quote WHERE collection_id = $1", collectionID); err != nil {
 			return fmt.Errorf("delete collection: %w", err)
 		}
@@ -58,16 +79,74 @@ func main() {
 		}
 
 		if err := quoteDB.Exec(ctx, fmt.Sprintf("UPDATE kaamebott.quote SET search_vector = to_tsvector('%s', id) || to_tsvector('%s', value) || to_tsvector('%s', character) || to_tsvector('%s', context) WHERE collection_id = $1;", *language, *language, *language, *language), collectionID); err != nil {
+			return fmt.Errorf("refresh search vector: %w", err)
+		}
+
+		return nil
+	})
+}
+
+func enrichQuotes(ctx context.Context, quoteDB db.Service, collectionID uint64, language *string, quotes []model.Quote) error {
+	existingsPerCharacter := make(map[string][]model.Quote)
+
+	err := quoteDB.List(ctx, func(row pgx.Rows) error {
+		var item model.Quote
+
+		if err := row.Scan(&item.ID, &item.Value, &item.Character); err == pgx.ErrNoRows {
+			return nil
+		}
+
+		sanitizedCharacter, err := sanitizeName(item.Character)
+		logger.FatalfOnErr(ctx, err, "sanitize character")
+
+		existingsPerCharacter[sanitizedCharacter] = append(existingsPerCharacter[sanitizedCharacter], item)
+
+		return nil
+	}, "SELECT id, value, character FROM kaamebott.quote WHERE collection_id = $1", collectionID)
+	if err != nil {
+		return fmt.Errorf("list: %w", err)
+	}
+
+	return quoteDB.DoAtomic(ctx, func(ctx context.Context) error {
+		for _, quote := range quotes {
+			sanitizedQuote, err := sanitizeName(quote.Value)
+			logger.FatalfOnErr(ctx, err, "sanitize quote")
+			var found bool
+
+			for _, character := range strings.Split(quote.Character, ",") {
+				sanitizedCharacter, err := sanitizeName(character)
+				logger.FatalfOnErr(ctx, err, "sanitize character")
+
+				if mapped, ok := characterMapping[sanitizedCharacter]; ok {
+					sanitizedCharacter = mapped
+				}
+
+				for _, existing := range existingsPerCharacter[sanitizedCharacter] {
+					sanitizedExisting, err := sanitizeName(existing.Value)
+					logger.FatalfOnErr(ctx, err, "sanitize existing")
+
+					if sanitizedExisting == sanitizedQuote {
+						err := quoteDB.Exec(ctx, "UPDATE kaamebott.quote SET image = $1 WHERE id = $2 AND collection_id = $3", quote.Image, existing.ID, collectionID)
+						logger.FatalfOnErr(ctx, err, "update quote")
+
+						found = true
+						break
+					}
+				}
+			}
+
+			if !found {
+				err := quoteDB.Exec(ctx, "INSERT INTO kaamebott.quote (id, value, character, context, url, image, collection_id) VALUES ($1, $2, $3, $4, $5, $6, $7)", quote.ID, quote.Value, quote.Character, "", "", quote.Image, collectionID)
+				logger.FatalfOnErr(ctx, err, "update quote")
+			}
+		}
+
+		if err := quoteDB.Exec(ctx, fmt.Sprintf("UPDATE kaamebott.quote SET search_vector = to_tsvector('%s', id) || to_tsvector('%s', value) || to_tsvector('%s', character) || to_tsvector('%s', context) WHERE collection_id = $1;", *language, *language, *language, *language), collectionID); err != nil {
 			return fmt.Errorf("create search vector for quote: %w", err)
 		}
 
 		return nil
-	}); err != nil {
-		slog.LogAttrs(ctx, slog.LevelError, "update quotes", slog.Any("error", err))
-		os.Exit(1)
-	}
-
-	slog.LogAttrs(ctx, slog.LevelInfo, "Collection indexed", slog.String("collection", collectionName))
+	})
 }
 
 func readQuotes(ctx context.Context, filename string) ([]model.Quote, string, error) {

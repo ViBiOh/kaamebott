@@ -8,13 +8,13 @@ endif
 APP_NAME = kaamebott
 PACKAGES ?= ./...
 
-MAIN_SOURCE = cmd/kaamebott/kaamebott.go
+MAIN_SOURCE = ./cmd/kaamebott/
 MAIN_RUNNER = go run $(MAIN_SOURCE)
 ifeq ($(DEBUG), true)
 	MAIN_RUNNER = dlv debug $(MAIN_SOURCE) --
 endif
 
-INDEXER_SOURCE = cmd/indexer/indexer.go
+INDEXER_SOURCE = ./cmd/indexer/
 INDEXER_RUNNER = go run $(INDEXER_SOURCE)
 ifeq ($(DEBUG), true)
 	INDEXER_RUNNER = dlv debug $(INDEXER_SOURCE) --

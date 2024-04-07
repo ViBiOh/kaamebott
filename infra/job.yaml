@@ -47,18 +47,6 @@ spec:
                       }
                     ]
                   },
-                  "kaamelottgif": {
-                    "name": "kaamelottgif",
-                    "description": "Une vidéo de la cour du roi Arthur",
-                    "options": [
-                      {
-                        "name": "recherche",
-                        "description": "Un mot clé pour affiner la recherche",
-                        "type": 3,
-                        "required": true
-                      }
-                    ]
-                  },
                   "oss117": {
                     "name": "oss117",
                     "description": "Une citation des films OSS117",

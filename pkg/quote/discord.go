@@ -17,10 +17,8 @@ import (
 const (
 	queryParam = "recherche"
 
-	kaamelottName          = "kaamelott"
-	kaamelottGifName       = "kaamelottgif"
-	kaamelottGifCollection = "kaamelott_gif"
-	oss117Name             = "oss117"
+	kaamelottName = "kaamelott"
+	oss117Name    = "oss117"
 )
 
 var (
@@ -29,9 +27,8 @@ var (
 )
 
 var indexes = map[string]string{
-	kaamelottName:    kaamelottName,
-	kaamelottGifName: kaamelottGifCollection,
-	oss117Name:       oss117Name,
+	kaamelottName: kaamelottName,
+	oss117Name:    oss117Name,
 }
 
 func (s Service) DiscordHandler(ctx context.Context, webhook discord.InteractionRequest) (discord.InteractionResponse, func(context.Context) discord.InteractionResponse) {
@@ -178,10 +175,10 @@ func (s Service) getQuoteEmbed(quote model.Quote) discord.Embed {
 	switch quote.Collection {
 	case kaamelottName:
 		return s.getKaamelottEmbeds(quote)
-	case kaamelottGifCollection:
-		return s.getKaamelottGifEmbeds(quote)
+
 	case oss117Name:
 		return s.getOss117Embeds(quote)
+
 	default:
 		return discord.Embed{
 			Title:       "Error",
@@ -191,20 +188,19 @@ func (s Service) getQuoteEmbed(quote model.Quote) discord.Embed {
 }
 
 func (s Service) getKaamelottEmbeds(quote model.Quote) discord.Embed {
+	var thumbnail, image *discord.Image
+	if len(quote.Image) != 0 {
+		image = discord.NewImage(quote.Image)
+	} else {
+		thumbnail = discord.NewImage(fmt.Sprintf("%s/images/kaamelott.png", s.website))
+	}
+
 	return discord.Embed{
 		Title:       quote.Context,
 		Description: quote.Value,
 		URL:         quote.URL,
-		Thumbnail:   discord.NewImage(fmt.Sprintf("%s/images/kaamelott.png", s.website)),
-		Fields: []discord.Field{
-			discord.NewField("Personnage", quote.Character),
-		},
-	}
-}
-
-func (s Service) getKaamelottGifEmbeds(quote model.Quote) discord.Embed {
-	return discord.Embed{
-		Image: discord.NewImage(quote.URL),
+		Image:       image,
+		Thumbnail:   thumbnail,
 		Fields: []discord.Field{
 			discord.NewField("Personnage", quote.Character),
 		},

@@ -1,6 +1,5 @@
 package model
 
-// Quote is someone who say something
 type Quote struct {
 	ID         string `json:"id"`
 	Value      string `json:"value"`
@@ -9,4 +8,5 @@ type Quote struct {
 	Collection string `json:"collection"`
 	Language   string `json:"language"`
 	URL        string `json:"url"`
+	Image      string `json:"image"`
 }

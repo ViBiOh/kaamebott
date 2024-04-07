@@ -39,6 +39,7 @@ CREATE TABLE kaamebott.quote (
   character TEXT NOT NULL,
   context TEXT NOT NULL,
   url TEXT NOT NULL,
+  image TEXT,
   search_vector TSVECTOR
 );
 
