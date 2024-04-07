@@ -16,7 +16,7 @@ SELECT
   q.character,
   q.context,
   q.url,
-  q.image,,
+  q.image,
   c.name,
   count(1) OVER() AS full_count
 FROM
