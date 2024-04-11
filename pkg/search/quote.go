@@ -61,11 +61,17 @@ func (s Service) searchQuote(ctx context.Context, collectionID uint64, language,
 	var item model.Quote
 
 	scanner := func(row pgx.Row) error {
-		err := row.Scan(&item.ID, &item.Value, &item.Character, &item.Context, &item.URL, &item.Image, &item.Collection, &totalCount)
+		var nullableImage *string
 
+		err := row.Scan(&item.ID, &item.Value, &item.Character, &item.Context, &item.URL, &nullableImage, &item.Collection, &totalCount)
 		if err == pgx.ErrNoRows {
 			return nil
 		}
+
+		if nullableImage != nil {
+			item.Image = *nullableImage
+		}
+
 		return err
 	}
 

@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log/slog"
 	"net/url"
 	"strings"
 
@@ -116,6 +117,7 @@ func (s Service) getQuery(ctx context.Context, webhook discord.InteractionReques
 func (s Service) handleSearch(ctx context.Context, index, query, last string) discord.InteractionResponse {
 	quote, err := s.search.Search(ctx, index, query, last)
 	if err != nil && !errors.Is(err, search.ErrNotFound) {
+		slog.LogAttrs(ctx, slog.LevelError, "search error", slog.String("index", index), slog.String("query", query), slog.String("last", last), slog.Any("error", err))
 		return discord.NewEphemeral(len(last) != 0, fmt.Sprintf("Oh, it's broken 😱. Reason: %s", err))
 	}
 

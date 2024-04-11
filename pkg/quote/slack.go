@@ -3,6 +3,7 @@ package quote
 import (
 	"context"
 	"fmt"
+	"log/slog"
 	"strings"
 
 	"github.com/ViBiOh/ChatPotte/slack"
@@ -108,13 +109,14 @@ func (s Service) getQuote(ctx context.Context, index, text string, last string) 
 	return quote, err
 }
 
-func (s Service) getQuoteBlock(ctx context.Context, index, text string, last string) slack.Response {
-	quote, err := s.getQuote(ctx, index, text, last)
+func (s Service) getQuoteBlock(ctx context.Context, index, query string, last string) slack.Response {
+	quote, err := s.getQuote(ctx, index, query, last)
 	if err != nil {
+		slog.LogAttrs(ctx, slog.LevelError, "search error", slog.String("index", index), slog.String("query", query), slog.String("last", last), slog.Any("error", err))
 		return slack.NewError(err)
 	}
 
-	return s.getQuoteResponse(quote, text, "")
+	return s.getQuoteResponse(quote, query, "")
 }
 
 func (s Service) getQuoteResponse(quote model.Quote, query, user string) slack.Response {
