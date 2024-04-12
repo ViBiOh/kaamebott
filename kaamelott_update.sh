@@ -6,7 +6,7 @@ main() {
   local SCRIPT_DIR
   SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
-  curl --disable --silent --show-error --location "https://raw.githubusercontent.com/ViBiOh/scripts/main/bootstrap" | bash -s -- "-c" "var"
+  curl --disable --silent --show-error --location "https://raw.githubusercontent.com/ViBiOh/scripts/main/bootstrap.sh" | bash -s -- "-c" "var"
   source "${SCRIPT_DIR}/scripts/meta" && meta_check "var"
 
   var_read SOUND_VERSION
