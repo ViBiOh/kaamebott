@@ -108,11 +108,18 @@ func (s Service) getQuote(ctx context.Context, collectionID uint64, language, id
 	var item model.Quote
 
 	scanner := func(row pgx.Row) error {
-		err := row.Scan(&item.ID, &item.Value, &item.Character, &item.Context, &item.URL, &item.Image, &item.Collection)
+		var nullableImage *string
+
+		err := row.Scan(&item.ID, &item.Value, &item.Character, &item.Context, &item.URL, &nullableImage, &item.Collection)
 
 		if err == pgx.ErrNoRows {
 			return nil
 		}
+
+		if nullableImage != nil {
+			item.Image = *nullableImage
+		}
+
 		return err
 	}
 
@@ -152,10 +159,17 @@ func (a Service) getRandomQuote(ctx context.Context, collectionID uint64, langua
 	var item model.Quote
 
 	scanner := func(row pgx.Row) error {
-		err := row.Scan(&item.ID, &item.Value, &item.Character, &item.Context, &item.URL, &item.Image, &item.Collection)
+		var nullableImage *string
+
+		err := row.Scan(&item.ID, &item.Value, &item.Character, &item.Context, &item.URL, &nullableImage, &item.Collection)
 		if err == pgx.ErrNoRows {
 			return nil
 		}
+
+		if nullableImage != nil {
+			item.Image = *nullableImage
+		}
+
 		return err
 	}
 
