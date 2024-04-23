@@ -6,7 +6,6 @@ import (
 	"errors"
 	"flag"
 	"fmt"
-	"log"
 	"log/slog"
 	"os"
 	"path"
@@ -42,9 +41,7 @@ func main() {
 
 	dbConfig := db.Flags(fs, "db")
 
-	if err := fs.Parse(os.Args[1:]); err != nil {
-		log.Fatal(err)
-	}
+	_ = fs.Parse(os.Args[1:])
 
 	ctx := context.Background()
 

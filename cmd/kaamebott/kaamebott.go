@@ -4,7 +4,6 @@ import (
 	"context"
 	"embed"
 	"flag"
-	"log"
 	"net/http"
 	"os"
 	"strings"
@@ -59,9 +58,7 @@ func main() {
 
 	dbConfig := db.Flags(fs, "db")
 
-	if err := fs.Parse(os.Args[1:]); err != nil {
-		log.Fatal(err)
-	}
+	_ = fs.Parse(os.Args[1:])
 
 	alcotest.DoAndExit(alcotestConfig)
 
