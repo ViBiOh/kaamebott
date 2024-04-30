@@ -7,7 +7,7 @@ import (
 	"fmt"
 	"html/template"
 	"log/slog"
-	"math/rand"
+	"math/rand/v2"
 	"net/http"
 	"time"
 
@@ -53,7 +53,7 @@ func Flags(fs *flag.FlagSet, prefix string) *Config {
 func New(config *Config, dbService db.Service, rendererService *renderer.Service) Service {
 	return Service{
 		value:    config.Value,
-		random:   rand.New(rand.NewSource(time.Now().Unix())),
+		random:   rand.New(rand.NewPCG(uint64(time.Now().Unix()), uint64(time.Now().UnixMicro()))),
 		db:       dbService,
 		renderer: rendererService,
 	}
