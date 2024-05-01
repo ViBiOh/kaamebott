@@ -3,7 +3,6 @@
 > Kaamebott adds a command in your Slack or Discord for finding an accurate quote from the Kaamelott world.
 
 [![Build](https://github.com/ViBiOh/kaamebott/workflows/Build/badge.svg)](https://github.com/ViBiOh/kaamebott/actions)
-[![codecov](https://codecov.io/gh/ViBiOh/kaamebott/branch/main/graph/badge.svg)](https://codecov.io/gh/ViBiOh/kaamebott)
 
 ## Thanks
 
