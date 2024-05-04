@@ -4,7 +4,6 @@ import (
 	"context"
 	"embed"
 	"flag"
-	"fmt"
 	"net/http"
 	"os"
 	"strings"
@@ -79,10 +78,6 @@ func main() {
 
 	service, version, envName := telemetryService.GetServiceVersionAndEnv()
 	pprofApp := pprof.New(pprofConfig, service, version, envName)
-
-	go func() {
-		fmt.Println(http.ListenAndServe("localhost:9999", http.DefaultServeMux))
-	}()
 
 	appServer := server.New(appServerConfig)
 
