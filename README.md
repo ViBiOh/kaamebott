@@ -67,9 +67,11 @@ Usage of kaamebott:
   --loggerMessageKey      string        [logger] Key for message in JSON ${KAAMEBOTT_LOGGER_MESSAGE_KEY} (default "msg")
   --loggerTimeKey         string        [logger] Key for timestamp in JSON ${KAAMEBOTT_LOGGER_TIME_KEY} (default "time")
   --minify                              Minify HTML ${KAAMEBOTT_MINIFY} (default true)
+  --name                  string        [server] Name ${KAAMEBOTT_NAME} (default "http")
   --okStatus              int           [http] Healthy HTTP Status code ${KAAMEBOTT_OK_STATUS} (default 204)
   --pathPrefix            string        Root Path Prefix ${KAAMEBOTT_PATH_PREFIX}
   --port                  uint          [server] Listen port (0 to disable) ${KAAMEBOTT_PORT} (default 1080)
+  --pprofAgent            string        [pprof] URL of the Datadog Trace Agent (e.g. http://datadog.observability:8126) ${KAAMEBOTT_PPROF_AGENT}
   --publicURL             string        Public URL ${KAAMEBOTT_PUBLIC_URL} (default "https://kaamebott.vibioh.fr")
   --readTimeout           duration      [server] Read Timeout ${KAAMEBOTT_READ_TIMEOUT} (default 5s)
   --redisAddress          string slice  [redis] Redis Address host:port (blank to disable) ${KAAMEBOTT_REDIS_ADDRESS}, as a string slice, environment variable separated by "," (default [127.0.0.1:6379])
@@ -85,6 +87,7 @@ Usage of kaamebott:
   --slackSigningSecret    string        [slack] Signing secret ${KAAMEBOTT_SLACK_SIGNING_SECRET}
   --telemetryRate         string        [telemetry] OpenTelemetry sample rate, 'always', 'never' or a float value ${KAAMEBOTT_TELEMETRY_RATE} (default "always")
   --telemetryURL          string        [telemetry] OpenTelemetry gRPC endpoint (e.g. otel-exporter:4317) ${KAAMEBOTT_TELEMETRY_URL}
+  --telemetryUint64                     [telemetry] Change OpenTelemetry Trace ID format to an unsigned int 64 ${KAAMEBOTT_TELEMETRY_UINT64} (default true)
   --title                 string        Application title ${KAAMEBOTT_TITLE} (default "Kaamebott")
   --url                   string        [alcotest] URL to check ${KAAMEBOTT_URL}
   --userAgent             string        [alcotest] User-Agent for check ${KAAMEBOTT_USER_AGENT} (default "Alcotest")

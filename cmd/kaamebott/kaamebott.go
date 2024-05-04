@@ -4,6 +4,7 @@ import (
 	"context"
 	"embed"
 	"flag"
+	"fmt"
 	"net/http"
 	"os"
 	"strings"
@@ -18,6 +19,7 @@ import (
 	"github.com/ViBiOh/httputils/v4/pkg/httputils"
 	"github.com/ViBiOh/httputils/v4/pkg/logger"
 	"github.com/ViBiOh/httputils/v4/pkg/owasp"
+	"github.com/ViBiOh/httputils/v4/pkg/pprof"
 	"github.com/ViBiOh/httputils/v4/pkg/recoverer"
 	"github.com/ViBiOh/httputils/v4/pkg/redis"
 	"github.com/ViBiOh/httputils/v4/pkg/renderer"
@@ -46,6 +48,7 @@ func main() {
 	alcotestConfig := alcotest.Flags(fs, "")
 	loggerConfig := logger.Flags(fs, "logger")
 	telemetryConfig := telemetry.Flags(fs, "telemetry")
+	pprofConfig := pprof.Flags(fs, "pprof")
 	owaspConfig := owasp.Flags(fs, "", flags.NewOverride("Csp", "default-src 'self'; base-uri 'self'; script-src 'self' 'httputils-nonce'; style-src 'self' 'httputils-nonce'; img-src 'self' platform.slack-edge.com"))
 	corsConfig := cors.Flags(fs, "cors")
 	rendererConfig := renderer.Flags(fs, "", flags.NewOverride("Title", "Kaamebott"), flags.NewOverride("PublicURL", "https://kaamebott.vibioh.fr"))
@@ -74,13 +77,23 @@ func main() {
 	logger.AddOpenTelemetryToDefaultLogger(telemetryService)
 	request.AddOpenTelemetryToDefaultClient(telemetryService.MeterProvider(), telemetryService.TracerProvider())
 
+	service, version, envName := telemetryService.GetServiceVersionAndEnv()
+	pprofApp := pprof.New(pprofConfig, service, version, envName)
+
+	go func() {
+		fmt.Println(http.ListenAndServe("localhost:9999", http.DefaultServeMux))
+	}()
+
+	appServer := server.New(appServerConfig)
+
 	quoteDB, err := db.New(ctx, dbConfig, telemetryService.TracerProvider())
 	logger.FatalfOnErr(ctx, err, "create database")
 
 	defer quoteDB.Close()
 
-	appServer := server.New(appServerConfig)
 	healthService := health.New(ctx, healthConfig, quoteDB.Ping)
+
+	go pprofApp.Start(healthService.DoneCtx())
 
 	rendererService, err := renderer.New(rendererConfig, content, search.FuncMap, telemetryService.MeterProvider(), telemetryService.TracerProvider())
 	logger.FatalfOnErr(ctx, err, "create renderer")
