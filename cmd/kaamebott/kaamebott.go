@@ -19,7 +19,6 @@ import (
 	"github.com/ViBiOh/httputils/v4/pkg/logger"
 	"github.com/ViBiOh/httputils/v4/pkg/owasp"
 	"github.com/ViBiOh/httputils/v4/pkg/pprof"
-	"github.com/ViBiOh/httputils/v4/pkg/recoverer"
 	"github.com/ViBiOh/httputils/v4/pkg/redis"
 	"github.com/ViBiOh/httputils/v4/pkg/renderer"
 	"github.com/ViBiOh/httputils/v4/pkg/request"
@@ -64,9 +63,9 @@ func main() {
 
 	alcotest.DoAndExit(alcotestConfig)
 
-	logger.Init(loggerConfig)
-
 	ctx := context.Background()
+
+	logger.Init(ctx, loggerConfig)
 
 	telemetryService, err := telemetry.New(ctx, telemetryConfig)
 	logger.FatalfOnErr(ctx, err, "create telemetry")
@@ -90,15 +89,15 @@ func main() {
 
 	go pprofApp.Start(healthService.DoneCtx())
 
-	rendererService, err := renderer.New(rendererConfig, content, search.FuncMap, telemetryService.MeterProvider(), telemetryService.TracerProvider())
+	rendererService, err := renderer.New(ctx, rendererConfig, content, search.FuncMap, telemetryService.MeterProvider(), telemetryService.TracerProvider())
 	logger.FatalfOnErr(ctx, err, "create renderer")
 
 	website := rendererService.PublicURL("")
 
-	redisClient, err := redis.New(redisConfig, telemetryService.MeterProvider(), telemetryService.TracerProvider())
+	redisClient, err := redis.New(ctx, redisConfig, telemetryService.MeterProvider(), telemetryService.TracerProvider())
 	logger.FatalfOnErr(ctx, err, "create redis")
 
-	defer redisClient.Close()
+	defer redisClient.Close(ctx)
 
 	searchService := search.New(searchConfig, quoteDB, rendererService)
 	quoteService := quote.New(website, searchService, redisClient, telemetryService.TracerProvider())
@@ -120,7 +119,7 @@ func main() {
 		}
 	})
 
-	go appServer.Start(healthService.EndCtx(), httputils.Handler(appHandler, healthService, recoverer.Middleware, telemetryService.Middleware("http"), owasp.New(owaspConfig).Middleware, cors.New(corsConfig).Middleware))
+	go appServer.Start(healthService.EndCtx(), httputils.Handler(appHandler, healthService, telemetryService.Middleware("http"), owasp.New(owaspConfig).Middleware, cors.New(corsConfig).Middleware))
 
 	healthService.WaitForTermination(appServer.Done())
 
