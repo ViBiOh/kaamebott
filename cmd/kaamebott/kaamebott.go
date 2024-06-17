@@ -4,9 +4,7 @@ import (
 	"context"
 	"embed"
 	"flag"
-	"net/http"
 	"os"
-	"strings"
 
 	"github.com/ViBiOh/ChatPotte/discord"
 	"github.com/ViBiOh/ChatPotte/slack"
@@ -30,11 +28,6 @@ import (
 
 //go:embed templates static
 var content embed.FS
-
-const (
-	slackPrefix   = "/slack"
-	discordPrefix = "/discord"
-)
 
 func main() {
 	fs := flag.NewFlagSet("kaamebott", flag.ExitOnError)
@@ -105,21 +98,11 @@ func main() {
 	discordService, err := discord.New(discordConfig, website, quoteService.DiscordHandler, telemetryService.TracerProvider())
 	logger.FatalfOnErr(ctx, err, "create discord")
 
-	slackHandler := http.StripPrefix(slackPrefix, slack.New(slackConfig, quoteService.SlackCommand, quoteService.SlackInteract, telemetryService.TracerProvider()).Handler())
-	discordHandler := http.StripPrefix(discordPrefix, discordService.Handler())
-	kaamebottHandler := rendererService.Handler(searchService.TemplateFunc)
+	slackService := slack.New(slackConfig, quoteService.SlackCommand, quoteService.SlackInteract, telemetryService.TracerProvider())
 
-	appHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if strings.HasPrefix(r.URL.Path, slackPrefix) {
-			slackHandler.ServeHTTP(w, r)
-		} else if strings.HasPrefix(r.URL.Path, discordPrefix) {
-			discordHandler.ServeHTTP(w, r)
-		} else {
-			kaamebottHandler.ServeHTTP(w, r)
-		}
-	})
+	port := newPort(rendererService, searchService, slackService, discordService)
 
-	go appServer.Start(healthService.EndCtx(), httputils.Handler(appHandler, healthService, telemetryService.Middleware("http"), owasp.New(owaspConfig).Middleware, cors.New(corsConfig).Middleware))
+	go appServer.Start(healthService.EndCtx(), httputils.Handler(port, healthService, telemetryService.Middleware("http"), owasp.New(owaspConfig).Middleware, cors.New(corsConfig).Middleware))
 
 	healthService.WaitForTermination(appServer.Done())
 
