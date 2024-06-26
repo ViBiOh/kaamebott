@@ -72,6 +72,7 @@ Usage of kaamebott:
   --pathPrefix            string        Root Path Prefix ${KAAMEBOTT_PATH_PREFIX}
   --port                  uint          [server] Listen port (0 to disable) ${KAAMEBOTT_PORT} (default 1080)
   --pprofAgent            string        [pprof] URL of the Datadog Trace Agent (e.g. http://datadog.observability:8126) ${KAAMEBOTT_PPROF_AGENT}
+  --pprofPort             int           [pprof] Port of the HTTP server (0 to disable) ${KAAMEBOTT_PPROF_PORT} (default 0)
   --publicURL             string        Public URL ${KAAMEBOTT_PUBLIC_URL} (default "https://kaamebott.vibioh.fr")
   --readTimeout           duration      [server] Read Timeout ${KAAMEBOTT_READ_TIMEOUT} (default 5s)
   --redisAddress          string slice  [redis] Redis Address host:port (blank to disable) ${KAAMEBOTT_REDIS_ADDRESS}, as a string slice, environment variable separated by "," (default [127.0.0.1:6379])

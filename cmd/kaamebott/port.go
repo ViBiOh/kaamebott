@@ -2,20 +2,15 @@ package main
 
 import (
 	"net/http"
-
-	"github.com/ViBiOh/ChatPotte/discord"
-	"github.com/ViBiOh/ChatPotte/slack"
-	"github.com/ViBiOh/httputils/v4/pkg/renderer"
-	"github.com/ViBiOh/kaamebott/pkg/search"
 )
 
-func newPort(rendererService *renderer.Service, searchService search.Service, slackService slack.Service, discordService discord.Service) http.Handler {
+func newPort(config configuration, services services) http.Handler {
 	mux := http.NewServeMux()
 
-	mux.Handle("/slack", http.StripPrefix("/slack", slackService.Handler()))
-	mux.Handle("/discord", http.StripPrefix("/discord", discordService.Handler()))
+	mux.Handle("/slack/", services.slack.NewServeMux())
+	mux.Handle("/discord/", services.discord.NewServeMux())
 
-	rendererService.Register(mux, searchService.TemplateFunc)
+	mux.Handle(config.renderer.PathPrefix+"/", services.renderer.NewServeMux(services.search.TemplateFunc))
 
 	return mux
 }
