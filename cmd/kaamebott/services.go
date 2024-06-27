@@ -7,6 +7,8 @@ import (
 
 	"github.com/ViBiOh/ChatPotte/discord"
 	"github.com/ViBiOh/ChatPotte/slack"
+	"github.com/ViBiOh/httputils/v4/pkg/cors"
+	"github.com/ViBiOh/httputils/v4/pkg/owasp"
 	"github.com/ViBiOh/httputils/v4/pkg/renderer"
 	"github.com/ViBiOh/httputils/v4/pkg/server"
 	"github.com/ViBiOh/kaamebott/pkg/quote"
@@ -18,6 +20,8 @@ var content embed.FS
 
 type services struct {
 	server   *server.Server
+	owasp    owasp.Service
+	cors     cors.Service
 	renderer *renderer.Service
 
 	search  search.Service
@@ -45,6 +49,8 @@ func newServices(ctx context.Context, config configuration, clients clients) (se
 
 	return services{
 		server:   server.New(config.server),
+		owasp:    owasp.New(config.owasp),
+		cors:     cors.New(config.cors),
 		renderer: rendererService,
 
 		search:  searchService,
