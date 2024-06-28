@@ -30,31 +30,29 @@ type services struct {
 }
 
 func newServices(ctx context.Context, config configuration, clients clients) (services, error) {
-	rendererService, err := renderer.New(ctx, config.renderer, content, search.FuncMap, clients.telemetry.MeterProvider(), clients.telemetry.TracerProvider())
+	var output services
+	var err error
+
+	output.server = server.New(config.server)
+	output.owasp = owasp.New(config.owasp)
+	output.cors = cors.New(config.cors)
+
+	output.renderer, err = renderer.New(ctx, config.renderer, content, search.FuncMap, clients.telemetry.MeterProvider(), clients.telemetry.TracerProvider())
 	if err != nil {
-		return services{}, fmt.Errorf("renderer: %w", err)
+		return output, fmt.Errorf("renderer: %w", err)
 	}
 
-	searchService := search.New(config.search, clients.db, rendererService)
-	website := rendererService.PublicURL("")
+	output.search = search.New(config.search, clients.db, output.renderer)
 
-	quoteService := quote.New(website, searchService, clients.redis, clients.telemetry.TracerProvider())
+	website := output.renderer.PublicURL("")
+	quoteService := quote.New(website, output.search, clients.redis, clients.telemetry.TracerProvider())
 
-	discordService, err := discord.New(config.discord, website, quoteService.DiscordHandler, clients.telemetry.TracerProvider())
+	output.discord, err = discord.New(config.discord, website, quoteService.DiscordHandler, clients.telemetry.TracerProvider())
 	if err != nil {
-		return services{}, fmt.Errorf("discord: %w", err)
+		return output, fmt.Errorf("discord: %w", err)
 	}
 
-	slackService := slack.New(config.slack, quoteService.SlackCommand, quoteService.SlackInteract, clients.telemetry.TracerProvider())
+	output.slack = slack.New(config.slack, quoteService.SlackCommand, quoteService.SlackInteract, clients.telemetry.TracerProvider())
 
-	return services{
-		server:   server.New(config.server),
-		owasp:    owasp.New(config.owasp),
-		cors:     cors.New(config.cors),
-		renderer: rendererService,
-
-		search:  searchService,
-		discord: discordService,
-		slack:   slackService,
-	}, nil
+	return output, nil
 }
