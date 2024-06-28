@@ -65,6 +65,51 @@ func main() {
 	slog.LogAttrs(ctx, slog.LevelInfo, "Collection indexed", slog.String("collection", collectionName))
 }
 
+func readQuotes(ctx context.Context, filename string) ([]model.Quote, string, error) {
+	reader, err := os.OpenFile(filename, os.O_RDONLY, 0o600)
+	if err != nil {
+		return nil, "", fmt.Errorf("open file: %w", err)
+	}
+
+	defer func() {
+		if closeErr := reader.Close(); closeErr != nil {
+			slog.LogAttrs(ctx, slog.LevelError, "close", slog.String("fn", "indexer.readQuotes"), slog.String("item", filename), slog.Any("error", closeErr))
+		}
+	}()
+
+	var quotes []model.Quote
+	if err := json.NewDecoder(reader).Decode(&quotes); err != nil {
+		return nil, "", fmt.Errorf("load quotes: %w", err)
+	}
+
+	return quotes, path.Base(strings.TrimSuffix(reader.Name(), ".json")), nil
+}
+
+func getOrCreateCollection(ctx context.Context, quoteDB db.Service, name, language string) (uint64, error) {
+	var collectionID uint64
+
+	if err := quoteDB.Get(ctx, func(row pgx.Row) error {
+		err := row.Scan(&collectionID)
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil
+		}
+		return err
+	}, "SELECT id FROM kaamebott.collection WHERE name = $1", name); err != nil {
+		return collectionID, fmt.Errorf("get collection `%s`: %w", name, err)
+	}
+
+	if collectionID != 0 {
+		return collectionID, nil
+	}
+
+	id, err := quoteDB.Create(ctx, "INSERT INTO kaamebott.collection (name, language) VALUES ($1, $2) RETURNING id", name, language)
+	if err != nil {
+		return collectionID, fmt.Errorf("create collection: %w", err)
+	}
+
+	return id, nil
+}
+
 func replaceQuotes(ctx context.Context, quoteDB db.Service, collectionID uint64, language *string, quotes []model.Quote) error {
 	return quoteDB.DoAtomic(ctx, func(ctx context.Context) error {
 		if err := quoteDB.Exec(ctx, "DELETE FROM kaamebott.quote WHERE collection_id = $1", collectionID); err != nil {
@@ -81,6 +126,27 @@ func replaceQuotes(ctx context.Context, quoteDB db.Service, collectionID uint64,
 
 		return nil
 	})
+}
+
+func insertQuotes(ctx context.Context, quoteDB db.Service, collectionID uint64, quotes []model.Quote) error {
+	quotesCount, index := len(quotes), 0
+
+	feedLine := func() ([]any, error) {
+		if quotesCount == index {
+			return nil, nil
+		}
+
+		item := quotes[index]
+		if len(item.ID) == 0 {
+			item.ID = hash.String(item.Value)
+		}
+
+		index++
+
+		return []any{collectionID, item.ID, item.Value, item.Character, item.Context, item.URL}, nil
+	}
+
+	return quoteDB.Bulk(ctx, feedLine, "kaamebott", "quote", "collection_id", "id", "value", "character", "context", "url")
 }
 
 func enrichQuotes(ctx context.Context, quoteDB db.Service, collectionID uint64, language *string, quotes []model.Quote) error {
@@ -144,70 +210,4 @@ func enrichQuotes(ctx context.Context, quoteDB db.Service, collectionID uint64, 
 
 		return nil
 	})
-}
-
-func readQuotes(ctx context.Context, filename string) ([]model.Quote, string, error) {
-	reader, err := os.OpenFile(filename, os.O_RDONLY, 0o600)
-	if err != nil {
-		return nil, "", fmt.Errorf("open file: %w", err)
-	}
-
-	defer func() {
-		if closeErr := reader.Close(); closeErr != nil {
-			slog.LogAttrs(ctx, slog.LevelError, "close", slog.String("fn", "indexer.readQuotes"), slog.String("item", filename), slog.Any("error", closeErr))
-		}
-	}()
-
-	var quotes []model.Quote
-	if err := json.NewDecoder(reader).Decode(&quotes); err != nil {
-		return nil, "", fmt.Errorf("load quotes: %w", err)
-	}
-
-	return quotes, path.Base(strings.TrimSuffix(reader.Name(), ".json")), nil
-}
-
-func getOrCreateCollection(ctx context.Context, quoteDB db.Service, name, language string) (uint64, error) {
-	var collectionID uint64
-
-	if err := quoteDB.Get(ctx, func(row pgx.Row) error {
-		err := row.Scan(&collectionID)
-		if errors.Is(err, pgx.ErrNoRows) {
-			return nil
-		}
-		return err
-	}, "SELECT id FROM kaamebott.collection WHERE name = $1", name); err != nil {
-		return collectionID, fmt.Errorf("get collection `%s`: %w", name, err)
-	}
-
-	if collectionID != 0 {
-		return collectionID, nil
-	}
-
-	id, err := quoteDB.Create(ctx, "INSERT INTO kaamebott.collection (name, language) VALUES ($1, $2) RETURNING id", name, language)
-	if err != nil {
-		return collectionID, fmt.Errorf("create collection: %w", err)
-	}
-
-	return id, nil
-}
-
-func insertQuotes(ctx context.Context, quoteDB db.Service, collectionID uint64, quotes []model.Quote) error {
-	quotesCount, index := len(quotes), 0
-
-	feedLine := func() ([]any, error) {
-		if quotesCount == index {
-			return nil, nil
-		}
-
-		item := quotes[index]
-		if len(item.ID) == 0 {
-			item.ID = hash.String(item.Value)
-		}
-
-		index++
-
-		return []any{collectionID, item.ID, item.Value, item.Character, item.Context, item.URL}, nil
-	}
-
-	return quoteDB.Bulk(ctx, feedLine, "kaamebott", "quote", "collection_id", "id", "value", "character", "context", "url")
 }

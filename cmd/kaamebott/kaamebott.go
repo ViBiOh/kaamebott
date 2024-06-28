@@ -28,6 +28,5 @@ func main() {
 	go services.server.Start(clients.health.EndCtx(), port)
 
 	clients.health.WaitForTermination(services.server.Done())
-
 	server.GracefulWait(services.server.Done())
 }
