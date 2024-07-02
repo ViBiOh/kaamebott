@@ -32,7 +32,7 @@ var indexes = map[string]string{
 	oss117Name:    oss117Name,
 }
 
-func (s Service) DiscordHandler(ctx context.Context, webhook discord.InteractionRequest) (discord.InteractionResponse, func(context.Context) discord.InteractionResponse) {
+func (s Service) DiscordHandler(ctx context.Context, webhook discord.InteractionRequest) (discord.InteractionResponse, bool, func(context.Context) discord.InteractionResponse) {
 	var err error
 
 	ctx, end := telemetry.StartSpan(ctx, s.tracer, "DiscordHandler")
@@ -40,32 +40,32 @@ func (s Service) DiscordHandler(ctx context.Context, webhook discord.Interaction
 
 	index, err := s.checkRequest(webhook)
 	if err != nil {
-		return discord.NewEphemeral(false, err.Error()), nil
+		return discord.NewEphemeral(false, err.Error()), false, nil
 	}
 
 	action, query, next, err := s.getQuery(ctx, webhook)
 	if err != nil {
-		return discord.NewEphemeral(false, err.Error()), nil
+		return discord.NewEphemeral(false, err.Error()), false, nil
 	}
 
 	switch action {
 	case nextValue:
-		return s.handleSearch(ctx, index, query, next), nil
+		return s.handleSearch(ctx, index, query, next), false, nil
 
 	case sendValue:
 		quote, err := s.search.GetByID(ctx, index, query)
 		if err != nil {
 			slog.LogAttrs(ctx, slog.LevelError, "get by id", slog.String("index", index), slog.String("query", query), slog.Any("error", err))
-			return discord.NewError(true, err), nil
+			return discord.NewError(true, err), false, nil
 		}
 
-		return s.quoteResponse(webhook.Member.User.ID, quote), nil
+		return s.quoteResponse(webhook.Member.User.ID, quote)
 
 	case cancelValue:
-		return discord.NewEphemeral(true, "Ok, not now."), nil
+		return discord.NewEphemeral(true, "Ok, not now."), true, nil
 
 	default:
-		return s.handleSearch(ctx, index, query, ""), nil
+		return s.handleSearch(ctx, index, query, ""), false, nil
 	}
 }
 
@@ -170,8 +170,10 @@ func (s Service) interactiveResponse(ctx context.Context, quote model.Quote, rep
 		})
 }
 
-func (s Service) quoteResponse(user string, quote model.Quote) discord.InteractionResponse {
-	return discord.NewResponse(discord.ChannelMessageWithSource, fmt.Sprintf("<@!%s> %s", user, i18n[quote.Language]["title"])).AddEmbed(s.getQuoteEmbed(quote))
+func (s Service) quoteResponse(user string, quote model.Quote) (discord.InteractionResponse, bool, func(context.Context) discord.InteractionResponse) {
+	return discord.NewReplace("Sending it..."), true, func(ctx context.Context) discord.InteractionResponse {
+		return discord.NewResponse(discord.ChannelMessageWithSource, fmt.Sprintf("<@!%s> %s", user, i18n[quote.Language]["title"])).AddEmbed(s.getQuoteEmbed(quote))
+	}
 }
 
 func (s Service) getQuoteEmbed(quote model.Quote) discord.Embed {
