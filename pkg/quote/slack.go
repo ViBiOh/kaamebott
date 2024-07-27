@@ -147,7 +147,27 @@ func (s Service) getContentBlock(indexName string, quote model.Quote) slack.Bloc
 }
 
 func (s Service) getKaamelottBlock(quote model.Quote) slack.Block {
-	text := slack.NewText(fmt.Sprintf("*<%s|%s>*\n\n_%s_ %s", quote.URL, quote.Context, quote.Character, quote.Value))
+	var text string
+
+	if len(quote.URL) != 0 && len(quote.Context) != 0 {
+		text = fmt.Sprintf("*<%s|%s>*", quote.URL, quote.Context)
+	}
+
+	if len(quote.Character) != 0 {
+		if len(text) != 0 {
+			text += "\n\n"
+		}
+
+		text += fmt.Sprintf("_%s_", quote.Character)
+	}
+
+	if len(quote.Value) != 0 {
+		if len(text) != 0 {
+			text += " "
+		}
+
+		text += quote.Value
+	}
 
 	var accessory *slack.Accessory
 
@@ -157,7 +177,7 @@ func (s Service) getKaamelottBlock(quote model.Quote) slack.Block {
 		accessory = slack.NewAccessory(fmt.Sprintf("%s/images/kaamelott.png", s.website), "kaamelott")
 	}
 
-	return slack.NewSection(text).WithAccessory(accessory)
+	return slack.NewSection(slack.NewText(text)).WithAccessory(accessory)
 }
 
 func (s Service) getOss117Block(quote model.Quote) slack.Block {
