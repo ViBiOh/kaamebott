@@ -12,97 +12,84 @@ import (
 	"time"
 
 	"github.com/ViBiOh/flags"
-	"github.com/ViBiOh/httputils/v4/pkg/db"
 	"github.com/ViBiOh/httputils/v4/pkg/renderer"
 	"github.com/ViBiOh/kaamebott/pkg/model"
+	"github.com/meilisearch/meilisearch-go"
 )
 
-// RandomQuery identify random query
-const RandomQuery = "random"
-
 var (
-	// ErrNotFound occurs when no result found
 	ErrNotFound = native_errors.New("no result found")
-
-	// ErrIndexNotFound occurs when index is not found
-	ErrIndexNotFound = native_errors.New("index not found")
-
-	// FuncMap for template rendering
-	FuncMap = template.FuncMap{}
+	FuncMap     = template.FuncMap{}
 )
 
 type Service struct {
 	random   *rand.Rand
 	renderer *renderer.Service
-	value    string
-	db       db.Service
+	search   *meilisearch.Client
 }
 
 type Config struct {
-	Value string
+	URL string
 }
 
-func Flags(fs *flag.FlagSet, prefix string) *Config {
+func Flags(fs *flag.FlagSet, prefix string, overrides ...flags.Override) *Config {
 	var config Config
 
-	flags.New("Value", "Value key").Prefix(prefix).DocPrefix("search").StringVar(fs, &config.Value, "value", nil)
+	flags.New("URL", "Meilisearch URL").Prefix(prefix).DocPrefix("search").StringVar(fs, &config.URL, "http://meilisearch:7700", overrides)
 
 	return &config
 }
 
-func New(config *Config, dbService db.Service, rendererService *renderer.Service) Service {
+func New(config *Config, rendererService *renderer.Service) Service {
 	return Service{
-		value:    config.Value,
+		search:   meilisearch.NewClient(meilisearch.ClientConfig{Host: config.URL}),
 		random:   rand.New(rand.NewPCG(uint64(time.Now().Unix()), uint64(time.Now().UnixMicro()))),
-		db:       dbService,
 		renderer: rendererService,
 	}
 }
 
-func (s Service) getCollectionID(ctx context.Context, collection string) (uint64, string, error) {
-	collectionID, language, err := s.getCollection(ctx, collection)
+func (s Service) HasIndex(ctx context.Context, indexName string) bool {
+	index, err := s.search.GetIndex(indexName)
 	if err != nil {
-		return 0, "", fmt.Errorf("get collection: %w", err)
+		slog.LogAttrs(ctx, slog.LevelError, fmt.Sprintf("check if index `%s` exists", indexName), slog.Any("error", err))
 	}
-	if collectionID == 0 {
-		return 0, "", ErrIndexNotFound
-	}
-	return collectionID, language, nil
+
+	return index != nil
 }
 
-func (s Service) HasCollection(ctx context.Context, collection string) bool {
-	collectionID, _, err := s.getCollection(ctx, collection)
-	if err != nil {
-		slog.LogAttrs(ctx, slog.LevelError, "check if collection exists", slog.Any("error", err))
-	}
-	return collectionID != 0
-}
-
-func (s Service) GetByID(ctx context.Context, collection, id string) (model.Quote, error) {
-	collectionID, language, err := s.getCollectionID(ctx, collection)
+func (s Service) GetByID(ctx context.Context, indexName, id string) (model.Quote, error) {
+	index, err := s.search.GetIndex(indexName)
 	if err != nil {
 		return model.Quote{}, err
 	}
 
-	return s.getQuote(ctx, collectionID, language, id)
+	var output model.Quote
+
+	return output, index.GetDocument(id, &meilisearch.DocumentQuery{}, &output)
 }
 
-func (s Service) Search(ctx context.Context, collection, query, last string) (model.Quote, error) {
-	collectionID, language, err := s.getCollectionID(ctx, collection)
+func (s Service) Search(ctx context.Context, indexName, query string, offset int) (model.Quote, error) {
+	index, err := s.search.GetIndex(indexName)
+	if err != nil {
+		return model.Quote{}, fmt.Errorf("get index: %w", err)
+	}
+
+	results, err := index.Search(query, &meilisearch.SearchRequest{Limit: 1, Offset: int64(offset)})
 	if err != nil {
 		return model.Quote{}, err
 	}
 
-	return s.searchQuote(ctx, collectionID, language, query, last)
-}
-
-func (s Service) Random(ctx context.Context, collection string) (model.Quote, error) {
-	collectionID, language, err := s.getCollectionID(ctx, collection)
-	if err != nil {
-		return model.Quote{}, err
+	if len(results.Hits) == 0 {
+		return model.Quote{}, ErrNotFound
 	}
 
-	return s.getRandomQuote(ctx, collectionID, language)
+	var output model.Quote
+
+	return output, index.GetDocument(results.Hits[0].(map[string]any)["id"].(string), &meilisearch.DocumentQuery{}, &output)
+}
+
+func (s Service) Random(ctx context.Context, indexName string) (model.Quote, error) {
+	return s.Search(ctx, indexName, "", 0)
 }
 
 func (s Service) TemplateFunc(w http.ResponseWriter, r *http.Request) (renderer.Page, error) {

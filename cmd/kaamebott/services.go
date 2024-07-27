@@ -42,7 +42,7 @@ func newServices(ctx context.Context, config configuration, clients clients) (se
 		return output, fmt.Errorf("renderer: %w", err)
 	}
 
-	output.search = search.New(config.search, clients.db, output.renderer)
+	output.search = search.New(config.search, output.renderer)
 
 	website := output.renderer.PublicURL("")
 	quoteService := quote.New(website, output.search, clients.redis, clients.telemetry.TracerProvider())

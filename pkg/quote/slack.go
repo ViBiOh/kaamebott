@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log/slog"
+	"strconv"
 	"strings"
 
 	"github.com/ViBiOh/ChatPotte/slack"
@@ -20,28 +21,19 @@ const (
 	sendValue   = "send"
 )
 
-var i18n map[string]map[string]string = map[string]map[string]string{
-	"french": {
-		cancelValue: "Annuler",
-		nextValue:   "Une autre ?",
-		sendValue:   "Envoyer",
-		"not_found": "On n'a rien trouvé pour",
-		"title":     "Posté par ",
-	},
-	"english": {
-		cancelValue: "Cancel",
-		nextValue:   "Another?",
-		sendValue:   "Send",
-		"not_found": "We didn't find anything for",
-		"title":     "Posted by ",
-	},
+var i18n map[string]string = map[string]string{
+	cancelValue: "Annuler",
+	nextValue:   "Une autre ?",
+	sendValue:   "Envoyer",
+	"not_found": "On n'a rien trouvé pour",
+	"title":     "Posté par ",
 }
 
 type Service struct {
+	search      search.Service
 	redisClient redis.Client
 	tracer      trace.Tracer
 	website     string
-	search      search.Service
 }
 
 func New(website string, searchService search.Service, redisClient redis.Client, tracerProvider trace.TracerProvider) Service {
@@ -59,11 +51,11 @@ func New(website string, searchService search.Service, redisClient redis.Client,
 }
 
 func (s Service) SlackCommand(ctx context.Context, payload slack.SlashPayload) slack.Response {
-	if !s.search.HasCollection(ctx, payload.Command) {
+	if !s.search.HasIndex(ctx, payload.Command) {
 		return slack.NewEphemeralMessage("unknown command")
 	}
 
-	return s.getQuoteBlock(ctx, payload.Command, payload.Text, "")
+	return s.getQuoteBlock(ctx, payload.Command, payload.Text, 0)
 }
 
 func (s Service) SlackInteract(ctx context.Context, payload slack.InteractivePayload) slack.Response {
@@ -82,7 +74,7 @@ func (s Service) SlackInteract(ctx context.Context, payload slack.InteractivePay
 			return slack.NewEphemeralMessage(fmt.Sprintf("find asked quote: %s", err))
 		}
 
-		return s.getQuoteResponse(quote, "", payload.User.ID)
+		return s.getQuoteResponse(action.BlockID, quote, "", payload.User.ID, 0)
 	}
 
 	if action.ActionID == nextValue {
@@ -91,14 +83,19 @@ func (s Service) SlackInteract(ctx context.Context, payload slack.InteractivePay
 			return slack.NewEphemeralMessage(fmt.Sprintf("button value seems wrong: %s", action.Value))
 		}
 
-		return s.getQuoteBlock(ctx, action.BlockID, action.Value[:lastIndex], action.Value[lastIndex+1:])
+		offset, err := strconv.Atoi(action.Value[lastIndex+1:])
+		if err != nil {
+			return slack.NewEphemeralMessage("offset is not numeric")
+		}
+
+		return s.getQuoteBlock(ctx, action.BlockID, action.Value[:lastIndex], offset)
 	}
 
 	return slack.NewEphemeralMessage("We don't understand what to do.")
 }
 
-func (s Service) getQuote(ctx context.Context, index, text string, last string) (model.Quote, error) {
-	quote, err := s.search.Search(ctx, index, strings.TrimSpace(text), last)
+func (s Service) getQuote(ctx context.Context, index, text string, offset int) (model.Quote, error) {
+	quote, err := s.search.Search(ctx, index, strings.TrimSpace(text), offset)
 	if err != nil && err == search.ErrNotFound {
 		quote, err = s.search.Random(ctx, index)
 		if err != nil {
@@ -109,23 +106,20 @@ func (s Service) getQuote(ctx context.Context, index, text string, last string) 
 	return quote, err
 }
 
-func (s Service) getQuoteBlock(ctx context.Context, index, query string, last string) slack.Response {
-	quote, err := s.getQuote(ctx, index, query, last)
+func (s Service) getQuoteBlock(ctx context.Context, index, query string, offset int) slack.Response {
+	quote, err := s.getQuote(ctx, index, query, offset)
 	if err != nil {
-		slog.LogAttrs(ctx, slog.LevelError, "search error", slog.String("index", index), slog.String("query", query), slog.String("last", last), slog.Any("error", err))
+		slog.LogAttrs(ctx, slog.LevelError, "search error", slog.String("index", index), slog.String("query", query), slog.Int("offset", offset), slog.Any("error", err))
 		return slack.NewError(err)
 	}
 
-	return s.getQuoteResponse(quote, query, "")
+	return s.getQuoteResponse(index, quote, query, "", offset)
 }
 
-func (s Service) getQuoteResponse(quote model.Quote, query, user string) slack.Response {
-	content := s.getContentBlock(quote)
+func (s Service) getQuoteResponse(index string, quote model.Quote, query, user string, offset int) slack.Response {
+	content := s.getContentBlock(index, quote)
 	if httpmodel.IsNil(content) {
-		if len(quote.Language) == 0 {
-			quote.Language = "english"
-		}
-		return slack.NewEphemeralMessage(fmt.Sprintf("%s `%s`", i18n[quote.Language]["not_found"], query))
+		return slack.NewEphemeralMessage(fmt.Sprintf("%s `%s`", i18n["not_found"], query))
 	}
 
 	if len(user) == 0 {
@@ -133,14 +127,14 @@ func (s Service) getQuoteResponse(quote model.Quote, query, user string) slack.R
 			query = " "
 		}
 
-		return slack.NewEphemeralMessage("").AddBlock(content).AddBlock(slack.NewActions(quote.Collection, slack.NewButtonElement(i18n[quote.Language][cancelValue], cancelValue, "", "danger"), slack.NewButtonElement(i18n[quote.Language][nextValue], nextValue, fmt.Sprintf("%s@%s", query, quote.ID), ""), slack.NewButtonElement(i18n[quote.Language][sendValue], sendValue, quote.ID, "primary")))
+		return slack.NewEphemeralMessage("").AddBlock(content).AddBlock(slack.NewActions(index, slack.NewButtonElement(i18n[cancelValue], cancelValue, "", "danger"), slack.NewButtonElement(i18n[nextValue], nextValue, fmt.Sprintf("%s@%d", query, offset+1), ""), slack.NewButtonElement(i18n[sendValue], sendValue, quote.ID, "primary")))
 	}
 
-	return slack.NewResponse("").WithDeleteOriginal().AddBlock(content).AddBlock(slack.NewContext().AddElement(slack.NewText(fmt.Sprintf("%s <@%s>", i18n[quote.Language]["title"], user))))
+	return slack.NewResponse("").WithDeleteOriginal().AddBlock(content).AddBlock(slack.NewContext().AddElement(slack.NewText(fmt.Sprintf("%s <@%s>", i18n["title"], user))))
 }
 
-func (s Service) getContentBlock(quote model.Quote) slack.Block {
-	switch quote.Collection {
+func (s Service) getContentBlock(indexName string, quote model.Quote) slack.Block {
+	switch indexName {
 	case "kaamelott":
 		return s.getKaamelottBlock(quote)
 

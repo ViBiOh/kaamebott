@@ -9,7 +9,6 @@ import (
 	"github.com/ViBiOh/flags"
 	"github.com/ViBiOh/httputils/v4/pkg/alcotest"
 	"github.com/ViBiOh/httputils/v4/pkg/cors"
-	"github.com/ViBiOh/httputils/v4/pkg/db"
 	"github.com/ViBiOh/httputils/v4/pkg/health"
 	"github.com/ViBiOh/httputils/v4/pkg/logger"
 	"github.com/ViBiOh/httputils/v4/pkg/owasp"
@@ -33,7 +32,6 @@ type configuration struct {
 	cors     *cors.Config
 	renderer *renderer.Config
 
-	db    *db.Config
 	redis *redis.Config
 
 	search  *search.Config
@@ -58,7 +56,6 @@ func newConfig() configuration {
 		renderer: renderer.Flags(fs, "", flags.NewOverride("Title", "Kaamebott"), flags.NewOverride("PublicURL", "https://kaamebott.vibioh.fr")),
 
 		redis: redis.Flags(fs, "redis"),
-		db:    db.Flags(fs, "db"),
 
 		search:  search.Flags(fs, "search"),
 		slack:   slack.Flags(fs, "slack"),

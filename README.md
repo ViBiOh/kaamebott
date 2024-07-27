@@ -81,7 +81,7 @@ Usage of kaamebott:
   --redisPassword         string        [redis] Redis Password, if any ${KAAMEBOTT_REDIS_PASSWORD}
   --redisPoolSize         int           [redis] Redis Pool Size (default GOMAXPROCS*10) ${KAAMEBOTT_REDIS_POOL_SIZE} (default 0)
   --redisUsername         string        [redis] Redis Username, if any ${KAAMEBOTT_REDIS_USERNAME}
-  --searchValue           string        [search] Value key ${KAAMEBOTT_SEARCH_VALUE} (default "value")
+  --searchURL             string        [search] Meilisearch URL ${KAAMEBOTT_SEARCH_URL} (default "http://meilisearch:7700")
   --shutdownTimeout       duration      [server] Shutdown Timeout ${KAAMEBOTT_SHUTDOWN_TIMEOUT} (default 10s)
   --slackClientID         string        [slack] ClientID ${KAAMEBOTT_SLACK_CLIENT_ID}
   --slackClientSecret     string        [slack] ClientSecret ${KAAMEBOTT_SLACK_CLIENT_SECRET}

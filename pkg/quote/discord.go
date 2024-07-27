@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log/slog"
 	"net/url"
+	"strconv"
 	"strings"
 
 	"github.com/ViBiOh/ChatPotte/discord"
@@ -43,14 +44,14 @@ func (s Service) DiscordHandler(ctx context.Context, webhook discord.Interaction
 		return discord.NewEphemeral(false, err.Error()), false, nil
 	}
 
-	action, query, next, err := s.getQuery(ctx, webhook)
+	action, query, offset, err := s.getQuery(ctx, webhook)
 	if err != nil {
 		return discord.NewEphemeral(false, err.Error()), false, nil
 	}
 
 	switch action {
 	case nextValue:
-		return s.handleSearch(ctx, index, query, next), false, nil
+		return s.handleSearch(ctx, index, query, offset), false, nil
 
 	case sendValue:
 		quote, err := s.search.GetByID(ctx, index, query)
@@ -59,13 +60,13 @@ func (s Service) DiscordHandler(ctx context.Context, webhook discord.Interaction
 			return discord.NewError(true, err), false, nil
 		}
 
-		return s.quoteResponse(webhook.Member.User.ID, quote)
+		return s.quoteResponse(webhook.Member.User.ID, index, quote)
 
 	case cancelValue:
 		return discord.NewEphemeral(true, "Ok, not now."), true, nil
 
 	default:
-		return s.handleSearch(ctx, index, query, ""), false, nil
+		return s.handleSearch(ctx, index, query, 0), false, nil
 	}
 }
 
@@ -86,54 +87,63 @@ func (s Service) checkRequest(webhook discord.InteractionRequest) (string, error
 	return index, nil
 }
 
-func (s Service) getQuery(ctx context.Context, webhook discord.InteractionRequest) (string, string, string, error) {
+func (s Service) getQuery(ctx context.Context, webhook discord.InteractionRequest) (string, string, int, error) {
 	switch webhook.Type {
 	case discord.MessageComponentInteraction:
-
 		values, err := discord.RestoreCustomID(ctx, s.redisClient, cachePrefix, webhook.Data.CustomID, []string{cancelAction})
 		if err != nil {
-			return "", "", "", fmt.Errorf("restore id: %w", err)
+			return "", "", 0, fmt.Errorf("restore id: %w", err)
 		}
 
 		switch values.Get("action") {
 		case sendValue:
-			return sendValue, values.Get("id"), "", nil
+			return sendValue, values.Get("id"), 0, nil
+
 		case nextValue:
-			return nextValue, values.Get("recherche"), values.Get("id"), nil
+			offset, err := strconv.Atoi(values.Get("offset"))
+			if err != nil {
+				return "", "", 0, fmt.Errorf("offset is not numeric: %w", err)
+			}
+
+			return nextValue, values.Get("search"), offset, nil
+
 		case cancelValue:
-			return cancelValue, "", "", nil
+			return cancelValue, "", 0, nil
 		}
 
 	case discord.ApplicationCommandInteraction:
 		for _, option := range webhook.Data.Options {
 			if strings.EqualFold(option.Name, queryParam) {
-				return nextValue, option.Value, "", nil
+				return nextValue, option.Value, 0, nil
 			}
 		}
 	}
 
-	return "", "", "", nil
+	return "", "", 0, nil
 }
 
-func (s Service) handleSearch(ctx context.Context, index, query, last string) discord.InteractionResponse {
-	quote, err := s.search.Search(ctx, index, query, last)
+func (s Service) handleSearch(ctx context.Context, indexName, query string, offset int) discord.InteractionResponse {
+	quote, err := s.search.Search(ctx, indexName, query, offset)
+
 	if err != nil && !errors.Is(err, search.ErrNotFound) {
-		slog.LogAttrs(ctx, slog.LevelError, "search", slog.String("index", index), slog.String("query", query), slog.String("last", last), slog.Any("error", err))
-		return discord.NewEphemeral(len(last) != 0, fmt.Sprintf("Oh, it's broken 😱. Reason: %s", err))
+		slog.LogAttrs(ctx, slog.LevelError, "search", slog.String("index", indexName), slog.String("query", query), slog.Int("offset", offset), slog.Any("error", err))
+		return discord.NewEphemeral(offset != 0, fmt.Sprintf("Oh, it's broken 😱. Reason: %s", err))
 	}
 
 	if len(quote.ID) == 0 {
-		return discord.NewEphemeral(len(last) != 0, fmt.Sprintf("We found nothing for `%s`", query))
+		return discord.NewEphemeral(offset != 0, fmt.Sprintf("We found nothing for `%s`", query))
 	}
 
-	return s.interactiveResponse(ctx, quote, len(last) != 0, query)
+	return s.interactiveResponse(ctx, indexName, quote, query, offset)
 }
 
-func (s Service) interactiveResponse(ctx context.Context, quote model.Quote, replace bool, recherche string) discord.InteractionResponse {
+func (s Service) interactiveResponse(ctx context.Context, indexName string, quote model.Quote, search string, offset int) discord.InteractionResponse {
 	var err error
 
 	ctx, end := telemetry.StartSpan(ctx, s.tracer, "interactiveResponse")
 	defer end(&err)
+
+	replace := offset != 0
 
 	webhookType := discord.ChannelMessageWithSource
 	if replace {
@@ -151,33 +161,33 @@ func (s Service) interactiveResponse(ctx context.Context, quote model.Quote, rep
 
 	nextValues := url.Values{}
 	nextValues.Add("action", nextValue)
-	nextValues.Add("id", quote.ID)
-	nextValues.Add("recherche", recherche)
+	nextValues.Add("offset", strconv.Itoa(offset+1))
+	nextValues.Add("search", search)
 
 	nextKey, err := discord.SaveCustomID(ctx, s.redisClient, cachePrefix, nextValues)
 	if err != nil {
 		return discord.NewError(replace, err)
 	}
 
-	return discord.NewResponse(webhookType, "").Ephemeral().AddEmbed(s.getQuoteEmbed(quote)).AddComponent(
+	return discord.NewResponse(webhookType, "").Ephemeral().AddEmbed(s.getQuoteEmbed(indexName, quote)).AddComponent(
 		discord.Component{
 			Type: discord.ActionRowType,
 			Components: []discord.Component{
-				discord.NewButton(discord.PrimaryButton, i18n[quote.Language][sendValue], sendKey),
-				discord.NewButton(discord.SecondaryButton, i18n[quote.Language][nextValue], nextKey),
-				discord.NewButton(discord.DangerButton, i18n[quote.Language][cancelValue], cancelAction),
+				discord.NewButton(discord.PrimaryButton, i18n[sendValue], sendKey),
+				discord.NewButton(discord.SecondaryButton, i18n[nextValue], nextKey),
+				discord.NewButton(discord.DangerButton, i18n[cancelValue], cancelAction),
 			},
 		})
 }
 
-func (s Service) quoteResponse(user string, quote model.Quote) (discord.InteractionResponse, bool, func(context.Context) discord.InteractionResponse) {
+func (s Service) quoteResponse(user, indexName string, quote model.Quote) (discord.InteractionResponse, bool, func(context.Context) discord.InteractionResponse) {
 	return discord.NewReplace("Sending it..."), true, func(ctx context.Context) discord.InteractionResponse {
-		return discord.NewResponse(discord.ChannelMessageWithSource, fmt.Sprintf("<@!%s> %s", user, i18n[quote.Language]["title"])).AddEmbed(s.getQuoteEmbed(quote))
+		return discord.NewResponse(discord.ChannelMessageWithSource, fmt.Sprintf("<@!%s> %s", user, i18n["title"])).AddEmbed(s.getQuoteEmbed(indexName, quote))
 	}
 }
 
-func (s Service) getQuoteEmbed(quote model.Quote) discord.Embed {
-	switch quote.Collection {
+func (s Service) getQuoteEmbed(indexName string, quote model.Quote) discord.Embed {
+	switch indexName {
 	case kaamelottName:
 		return s.getKaamelottEmbeds(quote)
 
@@ -187,7 +197,7 @@ func (s Service) getQuoteEmbed(quote model.Quote) discord.Embed {
 	default:
 		return discord.Embed{
 			Title:       "Error",
-			Description: fmt.Sprintf("render quote of collection `%s`", quote.Collection),
+			Description: fmt.Sprintf("render quote of index `%s`", indexName),
 		}
 	}
 }

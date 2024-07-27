@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/ViBiOh/httputils/v4/pkg/db"
 	"github.com/ViBiOh/httputils/v4/pkg/health"
 	"github.com/ViBiOh/httputils/v4/pkg/logger"
 	"github.com/ViBiOh/httputils/v4/pkg/pprof"
@@ -19,7 +18,6 @@ type clients struct {
 	health    *health.Service
 
 	redis redis.Client
-	db    db.Service
 }
 
 func newClients(ctx context.Context, config configuration) (clients, error) {
@@ -39,17 +37,12 @@ func newClients(ctx context.Context, config configuration) (clients, error) {
 	service, version, env := output.telemetry.GetServiceVersionAndEnv()
 	output.pprof = pprof.New(config.pprof, service, version, env)
 
-	output.db, err = db.New(ctx, config.db, output.telemetry.TracerProvider())
-	if err != nil {
-		return output, fmt.Errorf("database: %w", err)
-	}
-
 	output.redis, err = redis.New(ctx, config.redis, output.telemetry.MeterProvider(), output.telemetry.TracerProvider())
 	if err != nil {
 		return output, fmt.Errorf("redis: %w", err)
 	}
 
-	output.health = health.New(ctx, config.health, output.db.Ping)
+	output.health = health.New(ctx, config.health)
 
 	return output, nil
 }
@@ -59,7 +52,6 @@ func (c clients) Start() {
 }
 
 func (c clients) Close(ctx context.Context) {
-	c.db.Close()
 	c.redis.Close(ctx)
 	c.telemetry.Close(ctx)
 }

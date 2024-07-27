@@ -3,20 +3,19 @@ package main
 import (
 	"context"
 	"encoding/json"
-	"errors"
 	"flag"
 	"fmt"
 	"log/slog"
 	"os"
 	"path"
 	"strings"
+	"time"
 
 	"github.com/ViBiOh/flags"
-	"github.com/ViBiOh/httputils/v4/pkg/db"
 	"github.com/ViBiOh/httputils/v4/pkg/hash"
 	"github.com/ViBiOh/httputils/v4/pkg/logger"
 	"github.com/ViBiOh/kaamebott/pkg/model"
-	"github.com/jackc/pgx/v5"
+	"github.com/meilisearch/meilisearch-go"
 )
 
 var characterMapping = map[string]string{
@@ -36,33 +35,32 @@ func main() {
 	fs.Usage = flags.Usage(fs)
 
 	inputFile := flags.New("input", "JSON File").DocPrefix("indexer").String(fs, "", nil)
-	language := flags.New("language", "Language for tsvector").DocPrefix("indexer").String(fs, "french", nil)
-	enrich := flags.New("enrich", "Enrich existing collection").DocPrefix("indexer").Bool(fs, false, nil)
-
-	dbConfig := db.Flags(fs, "db")
+	enrich := flags.New("enrich", "JSON Enrich file").DocPrefix("indexer").String(fs, "", nil)
+	searchURL := flags.New("url", "Meilisearch URL").DocPrefix("indexer").String(fs, "http://localhost:7700", nil)
 
 	_ = fs.Parse(os.Args[1:])
 
-	ctx := context.Background()
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*30)
+	defer cancel()
 
-	quoteDB, err := db.New(ctx, dbConfig, nil)
-	logger.FatalfOnErr(ctx, err, "create db")
+	searchClient := meilisearch.NewClient(meilisearch.ClientConfig{Host: *searchURL})
 
-	defer quoteDB.Close()
-
-	quotes, collectionName, err := readQuotes(ctx, *inputFile)
+	quotes, indexName, err := readQuotes(ctx, *inputFile)
 	logger.FatalfOnErr(ctx, err, "read quote")
 
-	collectionID, err := getOrCreateCollection(ctx, quoteDB, collectionName, *language)
+	index, err := getIndex(ctx, searchClient, indexName)
 	logger.FatalfOnErr(ctx, err, "get or create collection")
 
-	if !*enrich {
-		logger.FatalfOnErr(ctx, replaceQuotes(ctx, quoteDB, collectionID, language, quotes), "replace collection")
-	} else {
-		logger.FatalfOnErr(ctx, enrichQuotes(ctx, quoteDB, collectionID, language, quotes), "replace collection")
+	logger.FatalfOnErr(ctx, replaceQuotes(ctx, index, quotes), "replace quotes")
+
+	if len(*enrich) != 0 {
+		enriched, _, err := readQuotes(ctx, *enrich)
+		logger.FatalfOnErr(ctx, err, "read enrich")
+
+		logger.FatalfOnErr(ctx, enrichQuotes(ctx, index, quotes, enriched), "enrich quotes")
 	}
 
-	slog.LogAttrs(ctx, slog.LevelInfo, "Collection indexed", slog.String("collection", collectionName))
+	slog.LogAttrs(ctx, slog.LevelInfo, "Collection indexed", slog.String("collection", indexName))
 }
 
 func readQuotes(ctx context.Context, filename string) ([]model.Quote, string, error) {
@@ -82,132 +80,124 @@ func readQuotes(ctx context.Context, filename string) ([]model.Quote, string, er
 		return nil, "", fmt.Errorf("load quotes: %w", err)
 	}
 
+	for i, quote := range quotes {
+		quotes[i].ID = hash.String(quote.ID)
+	}
+
 	return quotes, path.Base(strings.TrimSuffix(reader.Name(), ".json")), nil
 }
 
-func getOrCreateCollection(ctx context.Context, quoteDB db.Service, name, language string) (uint64, error) {
-	var collectionID uint64
-
-	if err := quoteDB.Get(ctx, func(row pgx.Row) error {
-		err := row.Scan(&collectionID)
-		if errors.Is(err, pgx.ErrNoRows) {
-			return nil
-		}
-		return err
-	}, "SELECT id FROM kaamebott.collection WHERE name = $1", name); err != nil {
-		return collectionID, fmt.Errorf("get collection `%s`: %w", name, err)
-	}
-
-	if collectionID != 0 {
-		return collectionID, nil
-	}
-
-	id, err := quoteDB.Create(ctx, "INSERT INTO kaamebott.collection (name, language) VALUES ($1, $2) RETURNING id", name, language)
+func getIndex(ctx context.Context, search *meilisearch.Client, name string) (*meilisearch.Index, error) {
+	createTask, err := search.CreateIndex(&meilisearch.IndexConfig{Uid: name})
 	if err != nil {
-		return collectionID, fmt.Errorf("create collection: %w", err)
+		return nil, fmt.Errorf("create index: %w", err)
 	}
 
-	return id, nil
-}
-
-func replaceQuotes(ctx context.Context, quoteDB db.Service, collectionID uint64, language *string, quotes []model.Quote) error {
-	return quoteDB.DoAtomic(ctx, func(ctx context.Context) error {
-		if err := quoteDB.Exec(ctx, "DELETE FROM kaamebott.quote WHERE collection_id = $1", collectionID); err != nil {
-			return fmt.Errorf("delete collection: %w", err)
-		}
-
-		if err := insertQuotes(ctx, quoteDB, collectionID, quotes); err != nil {
-			return fmt.Errorf("insert quotes: %w", err)
-		}
-
-		if err := quoteDB.Exec(ctx, fmt.Sprintf("UPDATE kaamebott.quote SET search_vector = to_tsvector('%s', id) || to_tsvector('%s', value) || to_tsvector('%s', character) || to_tsvector('%s', context) WHERE collection_id = $1;", *language, *language, *language, *language), collectionID); err != nil {
-			return fmt.Errorf("refresh search vector: %w", err)
-		}
-
-		return nil
-	})
-}
-
-func insertQuotes(ctx context.Context, quoteDB db.Service, collectionID uint64, quotes []model.Quote) error {
-	quotesCount, index := len(quotes), 0
-
-	feedLine := func() ([]any, error) {
-		if quotesCount == index {
-			return nil, nil
-		}
-
-		item := quotes[index]
-		if len(item.ID) == 0 {
-			item.ID = hash.String(item.Value)
-		}
-
-		index++
-
-		return []any{collectionID, item.ID, item.Value, item.Character, item.Context, item.URL}, nil
+	if _, err := search.WaitForTask(createTask.TaskUID, meilisearch.WaitParams{Context: ctx, Interval: time.Second}); err != nil {
+		return nil, fmt.Errorf("wait index: %w", err)
 	}
 
-	return quoteDB.Bulk(ctx, feedLine, "kaamebott", "quote", "collection_id", "id", "value", "character", "context", "url")
+	return search.Index(name), nil
 }
 
-func enrichQuotes(ctx context.Context, quoteDB db.Service, collectionID uint64, language *string, quotes []model.Quote) error {
+func replaceQuotes(ctx context.Context, index *meilisearch.Index, quotes []model.Quote) error {
+	deleteTask, err := index.DeleteAllDocuments()
+	if err != nil {
+		return fmt.Errorf("delete documents: %w", err)
+	}
+
+	if _, err := index.WaitForTask(deleteTask.TaskUID, meilisearch.WaitParams{Context: ctx, Interval: time.Second}); err != nil {
+		return fmt.Errorf("wait delete: %w", err)
+	}
+
+	addTask, err := index.AddDocuments(quotes, "id")
+	if err != nil {
+		return fmt.Errorf("add documents: %w", err)
+	}
+
+	if _, err := index.WaitForTask(addTask.TaskUID, meilisearch.WaitParams{Context: ctx, Interval: time.Second}); err != nil {
+		return fmt.Errorf("wait add: %w", err)
+	}
+
+	return nil
+}
+
+func enrichQuotes(ctx context.Context, index *meilisearch.Index, quotes []model.Quote, enriched []model.Quote) error {
 	existingsPerCharacter := make(map[string][]model.Quote)
 
-	err := quoteDB.List(ctx, func(row pgx.Rows) error {
-		var item model.Quote
-
-		if err := row.Scan(&item.ID, &item.Value, &item.Character); err == pgx.ErrNoRows {
-			return nil
+	for _, quote := range quotes {
+		sanitizedCharacter, err := sanitizeName(quote.Character)
+		if err != nil {
+			return fmt.Errorf("sanitize character `%s`: %w", quote.Character, err)
 		}
 
-		sanitizedCharacter, err := sanitizeName(item.Character)
-		logger.FatalfOnErr(ctx, err, "sanitize character")
-
-		existingsPerCharacter[sanitizedCharacter] = append(existingsPerCharacter[sanitizedCharacter], item)
-
-		return nil
-	}, "SELECT id, value, character FROM kaamebott.quote WHERE collection_id = $1", collectionID)
-	if err != nil {
-		return fmt.Errorf("list: %w", err)
+		existingsPerCharacter[sanitizedCharacter] = append(existingsPerCharacter[sanitizedCharacter], quote)
 	}
 
-	return quoteDB.DoAtomic(ctx, func(ctx context.Context) error {
-		for _, quote := range quotes {
-			sanitizedQuote, err := sanitizeName(quote.Value)
-			logger.FatalfOnErr(ctx, err, "sanitize quote")
-			var found bool
+	var toAdd []model.Quote
+	var toUpdate []model.Quote
 
-			for _, character := range strings.Split(quote.Character, ",") {
-				sanitizedCharacter, err := sanitizeName(character)
-				logger.FatalfOnErr(ctx, err, "sanitize character")
+	for _, quote := range enriched {
+		sanitizedQuote, err := sanitizeName(quote.Value)
+		if err != nil {
+			return fmt.Errorf("sanitize quote: %w", err)
+		}
 
-				if mapped, ok := characterMapping[sanitizedCharacter]; ok {
-					sanitizedCharacter = mapped
-				}
+		var found bool
 
-				for _, existing := range existingsPerCharacter[sanitizedCharacter] {
-					sanitizedExisting, err := sanitizeName(existing.Value)
-					logger.FatalfOnErr(ctx, err, "sanitize existing")
-
-					if sanitizedExisting == sanitizedQuote {
-						err := quoteDB.Exec(ctx, "UPDATE kaamebott.quote SET image = $1 WHERE id = $2 AND collection_id = $3", quote.Image, existing.ID, collectionID)
-						logger.FatalfOnErr(ctx, err, "update quote")
-
-						found = true
-						break
-					}
-				}
+		for _, character := range strings.Split(quote.Character, ",") {
+			sanitizedCharacter, err := sanitizeName(character)
+			if err != nil {
+				return fmt.Errorf("sanitize character `%s`: %w", character, err)
 			}
 
-			if !found {
-				err := quoteDB.Exec(ctx, "INSERT INTO kaamebott.quote (id, value, character, context, url, image, collection_id) VALUES ($1, $2, $3, $4, $5, $6, $7)", quote.ID, quote.Value, quote.Character, "", "", quote.Image, collectionID)
-				logger.FatalfOnErr(ctx, err, "update quote")
+			if mapped, ok := characterMapping[sanitizedCharacter]; ok {
+				sanitizedCharacter = mapped
+			}
+
+			for _, existing := range existingsPerCharacter[sanitizedCharacter] {
+				sanitizedExisting, err := sanitizeName(existing.Value)
+				if err != nil {
+					return fmt.Errorf("sanitize value `%s`: %w", existing.Value, err)
+				}
+
+				if sanitizedExisting == sanitizedQuote {
+					existing.Image = quote.Image
+
+					toUpdate = append(toUpdate, existing)
+
+					found = true
+					break
+				}
 			}
 		}
 
-		if err := quoteDB.Exec(ctx, fmt.Sprintf("UPDATE kaamebott.quote SET search_vector = to_tsvector('%s', id) || to_tsvector('%s', value) || to_tsvector('%s', character) || to_tsvector('%s', context) WHERE collection_id = $1;", *language, *language, *language, *language), collectionID); err != nil {
-			return fmt.Errorf("create search vector for quote: %w", err)
+		if !found {
+			toAdd = append(toAdd, quote)
+		}
+	}
+
+	if len(toUpdate) != 0 {
+		updateTask, err := index.UpdateDocuments(toUpdate)
+		if err != nil {
+			return fmt.Errorf("update quote: %w", err)
 		}
 
-		return nil
-	})
+		if _, err := index.WaitForTask(updateTask.TaskUID, meilisearch.WaitParams{Context: ctx, Interval: time.Second}); err != nil {
+			return fmt.Errorf("wait update: %w", err)
+		}
+	}
+
+	if len(toAdd) != 0 {
+		addTask, err := index.AddDocuments(toAdd)
+		if err != nil {
+			return fmt.Errorf("add quote: %w", err)
+		}
+
+		if _, err := index.WaitForTask(addTask.TaskUID, meilisearch.WaitParams{Context: ctx, Interval: time.Second}); err != nil {
+			return fmt.Errorf("wait add: %w", err)
+		}
+	}
+
+	return nil
 }
