@@ -28,6 +28,7 @@ var characterMapping = map[string]string{
 	"lothdorcanie":        "loth",
 	"mevanwi":             "mevanoui",
 	"monseigneurboniface": "levequeboniface",
+	"doloreskoulechov":    "dolores",
 }
 
 func main() {
