@@ -81,7 +81,7 @@ func readQuotes(ctx context.Context, filename string) ([]model.Quote, string, er
 	}
 
 	for i, quote := range quotes {
-		quotes[i].ID = hash.String(quote.ID)
+		quotes[i].ID = hash.Hash(quote)
 	}
 
 	return quotes, path.Base(strings.TrimSuffix(reader.Name(), ".json")), nil
