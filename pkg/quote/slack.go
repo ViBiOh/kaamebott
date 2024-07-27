@@ -2,6 +2,7 @@ package quote
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log/slog"
 	"strconv"
@@ -94,21 +95,13 @@ func (s Service) SlackInteract(ctx context.Context, payload slack.InteractivePay
 	return slack.NewEphemeralMessage("We don't understand what to do.")
 }
 
-func (s Service) getQuote(ctx context.Context, index, text string, offset int) (model.Quote, error) {
-	quote, err := s.search.Search(ctx, index, strings.TrimSpace(text), offset)
-	if err != nil && err == search.ErrNotFound {
-		quote, err = s.search.Random(ctx, index)
-		if err != nil {
-			return model.Quote{}, err
-		}
-	}
-
-	return quote, err
-}
-
 func (s Service) getQuoteBlock(ctx context.Context, index, query string, offset int) slack.Response {
-	quote, err := s.getQuote(ctx, index, query, offset)
+	quote, err := s.search.Search(ctx, index, strings.TrimSpace(query), offset)
 	if err != nil {
+		if errors.Is(err, search.ErrNotFound) {
+			return slack.NewEphemeralMessage(fmt.Sprintf("We found nothing for `%s`", query))
+		}
+
 		slog.LogAttrs(ctx, slog.LevelError, "search error", slog.String("index", index), slog.String("query", query), slog.Int("offset", offset), slog.Any("error", err))
 		return slack.NewError(err)
 	}
@@ -127,26 +120,36 @@ func (s Service) getQuoteResponse(index string, quote model.Quote, query, user s
 			query = " "
 		}
 
-		return slack.NewEphemeralMessage("").AddBlock(content).AddBlock(slack.NewActions(index, slack.NewButtonElement(i18n[cancelValue], cancelValue, "", "danger"), slack.NewButtonElement(i18n[nextValue], nextValue, fmt.Sprintf("%s@%d", query, offset+1), ""), slack.NewButtonElement(i18n[sendValue], sendValue, quote.ID, "primary")))
+		response := slack.NewEphemeralMessage("")
+		for _, block := range content {
+			response = response.AddBlock(block)
+		}
+
+		return response.AddBlock(slack.NewActions(index, slack.NewButtonElement(i18n[cancelValue], cancelValue, "", "danger"), slack.NewButtonElement(i18n[nextValue], nextValue, fmt.Sprintf("%s@%d", query, offset+1), ""), slack.NewButtonElement(i18n[sendValue], sendValue, quote.ID, "primary")))
 	}
 
-	return slack.NewResponse("").WithDeleteOriginal().AddBlock(content).AddBlock(slack.NewContext().AddElement(slack.NewText(fmt.Sprintf("%s <@%s>", i18n["title"], user))))
+	response := slack.NewResponse("").WithDeleteOriginal()
+	for _, block := range content {
+		response = response.AddBlock(block)
+	}
+
+	return response.AddBlock(slack.NewContext().AddElement(slack.NewText(fmt.Sprintf("%s <@%s>", i18n["title"], user))))
 }
 
-func (s Service) getContentBlock(indexName string, quote model.Quote) slack.Block {
+func (s Service) getContentBlock(indexName string, quote model.Quote) []slack.Block {
 	switch indexName {
 	case "kaamelott":
 		return s.getKaamelottBlock(quote)
 
 	case "oss117":
-		return s.getOss117Block(quote)
+		return []slack.Block{s.getOss117Block(quote)}
 
 	default:
 		return nil
 	}
 }
 
-func (s Service) getKaamelottBlock(quote model.Quote) slack.Block {
+func (s Service) getKaamelottBlock(quote model.Quote) []slack.Block {
 	var text string
 
 	if len(quote.URL) != 0 && len(quote.Context) != 0 {
@@ -169,15 +172,18 @@ func (s Service) getKaamelottBlock(quote model.Quote) slack.Block {
 		text += quote.Value
 	}
 
-	var accessory *slack.Accessory
+	section := slack.NewSection(slack.NewText(text))
+	var sections []slack.Block
 
-	if len(quote.Image) != 0 {
-		accessory = slack.NewAccessory(quote.Image, quote.Value)
+	if len(quote.Image) == 0 {
+		section = section.WithAccessory(slack.NewAccessory(fmt.Sprintf("%s/images/kaamelott.png", s.website), "kaamelott"))
+		sections = append(sections, section)
 	} else {
-		accessory = slack.NewAccessory(fmt.Sprintf("%s/images/kaamelott.png", s.website), "kaamelott")
+		sections = append(sections, section)
+		sections = append(sections, slack.NewImage(quote.Image, quote.Value, quote.Character))
 	}
 
-	return slack.NewSection(slack.NewText(text)).WithAccessory(accessory)
+	return sections
 }
 
 func (s Service) getOss117Block(quote model.Quote) slack.Block {
