@@ -85,6 +85,7 @@ spec:
                 "kaamelott": {
                   "name": "kaamelott",
                   "description": "Une citation de la cour du roi Arthur",
+                  "integration_types": [0, 1],
                   "contexts": [0, 2],
                   "options": [
                     {
@@ -98,6 +99,7 @@ spec:
                 "oss117": {
                   "name": "oss117",
                   "description": "Une citation des films OSS117",
+                  "integration_types": [0, 1],
                   "contexts": [0, 2],
                   "options": [
                     {
