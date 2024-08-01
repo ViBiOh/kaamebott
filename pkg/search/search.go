@@ -2,6 +2,7 @@ package search
 
 import (
 	"context"
+	"errors"
 	native_errors "errors"
 	"flag"
 	"fmt"
@@ -18,8 +19,9 @@ import (
 )
 
 var (
-	ErrNotFound = native_errors.New("no result found")
-	FuncMap     = template.FuncMap{}
+	ErrNotFound      = native_errors.New("no result found")
+	ErrIndexNotFound = native_errors.New("L'administrateur a surement redémarré la recherche mais n'a pas réindexé le contenu")
+	FuncMap          = template.FuncMap{}
 )
 
 type Service struct {
@@ -71,6 +73,11 @@ func (s Service) GetByID(ctx context.Context, indexName, id string) (model.Quote
 func (s Service) Search(ctx context.Context, indexName, query string, offset int) (model.Quote, error) {
 	index, err := s.search.GetIndex(indexName)
 	if err != nil {
+		var meiliError *meilisearch.Error
+		if errors.As(err, &meiliError) && meiliError.StatusCode == http.StatusNotFound {
+			return model.Quote{}, ErrIndexNotFound
+		}
+
 		return model.Quote{}, fmt.Errorf("get index: %w", err)
 	}
 
