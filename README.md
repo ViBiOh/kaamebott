@@ -44,15 +44,8 @@ Usage of kaamebott:
   --corsMethods           string        [cors] Access-Control-Allow-Methods ${KAAMEBOTT_CORS_METHODS} (default "GET")
   --corsOrigin            string        [cors] Access-Control-Allow-Origin ${KAAMEBOTT_CORS_ORIGIN} (default "*")
   --csp                   string        [owasp] Content-Security-Policy ${KAAMEBOTT_CSP} (default "default-src 'self'; base-uri 'self'; script-src 'self' 'httputils-nonce'; style-src 'self' 'httputils-nonce'; img-src 'self' platform.slack-edge.com")
-  --dbHost                string        [db] Host ${KAAMEBOTT_DB_HOST}
-  --dbMaxConn             uint          [db] Max Open Connections ${KAAMEBOTT_DB_MAX_CONN} (default 5)
-  --dbMinConn             uint          [db] Min Open Connections ${KAAMEBOTT_DB_MIN_CONN} (default 2)
-  --dbName                string        [db] Name ${KAAMEBOTT_DB_NAME}
-  --dbPass                string        [db] Pass ${KAAMEBOTT_DB_PASS}
-  --dbPort                uint          [db] Port ${KAAMEBOTT_DB_PORT} (default 5432)
-  --dbSslmode             string        [db] SSL Mode ${KAAMEBOTT_DB_SSLMODE} (default "disable")
-  --dbUser                string        [db] User ${KAAMEBOTT_DB_USER}
   --discordApplicationID  string        [discord] Application ID ${KAAMEBOTT_DISCORD_APPLICATION_ID}
+  --discordBotToken       string        [discord] Bot Token ${KAAMEBOTT_DISCORD_BOT_TOKEN}
   --discordClientID       string        [discord] Client ID ${KAAMEBOTT_DISCORD_CLIENT_ID}
   --discordClientSecret   string        [discord] Client Secret ${KAAMEBOTT_DISCORD_CLIENT_SECRET}
   --discordPublicKey      string        [discord] Public Key ${KAAMEBOTT_DISCORD_PUBLIC_KEY}
