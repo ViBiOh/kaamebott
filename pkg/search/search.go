@@ -27,7 +27,7 @@ var (
 type Service struct {
 	random   *rand.Rand
 	renderer *renderer.Service
-	search   *meilisearch.Client
+	search   meilisearch.ServiceManager
 }
 
 type Config struct {
@@ -44,7 +44,7 @@ func Flags(fs *flag.FlagSet, prefix string, overrides ...flags.Override) *Config
 
 func New(config *Config, rendererService *renderer.Service) Service {
 	return Service{
-		search:   meilisearch.NewClient(meilisearch.ClientConfig{Host: config.URL}),
+		search:   meilisearch.New(config.URL),
 		random:   rand.New(rand.NewPCG(uint64(time.Now().Unix()), uint64(time.Now().UnixMicro()))),
 		renderer: rendererService,
 	}

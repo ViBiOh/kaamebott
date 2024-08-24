@@ -44,7 +44,7 @@ func main() {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*30)
 	defer cancel()
 
-	searchClient := meilisearch.NewClient(meilisearch.ClientConfig{Host: *searchURL})
+	searchClient := meilisearch.New(*searchURL)
 
 	quotes, indexName, err := readQuotes(ctx, *inputFile)
 	logger.FatalfOnErr(ctx, err, "read quote")
@@ -88,26 +88,26 @@ func readQuotes(ctx context.Context, filename string) ([]model.Quote, string, er
 	return quotes, path.Base(strings.TrimSuffix(reader.Name(), ".json")), nil
 }
 
-func getIndex(ctx context.Context, search *meilisearch.Client, name string) (*meilisearch.Index, error) {
+func getIndex(ctx context.Context, search meilisearch.ServiceManager, name string) (meilisearch.IndexManager, error) {
 	createTask, err := search.CreateIndex(&meilisearch.IndexConfig{Uid: name})
 	if err != nil {
 		return nil, fmt.Errorf("create index: %w", err)
 	}
 
-	if _, err := search.WaitForTask(createTask.TaskUID, meilisearch.WaitParams{Context: ctx, Interval: time.Second}); err != nil {
+	if _, err := search.WaitForTaskWithContext(ctx, createTask.TaskUID, time.Second); err != nil {
 		return nil, fmt.Errorf("wait index: %w", err)
 	}
 
 	return search.Index(name), nil
 }
 
-func replaceQuotes(ctx context.Context, index *meilisearch.Index, quotes []model.Quote) error {
+func replaceQuotes(ctx context.Context, index meilisearch.IndexManager, quotes []model.Quote) error {
 	deleteTask, err := index.DeleteAllDocuments()
 	if err != nil {
 		return fmt.Errorf("delete documents: %w", err)
 	}
 
-	if _, err := index.WaitForTask(deleteTask.TaskUID, meilisearch.WaitParams{Context: ctx, Interval: time.Second}); err != nil {
+	if _, err := index.WaitForTaskWithContext(ctx, deleteTask.TaskUID, time.Second); err != nil {
 		return fmt.Errorf("wait delete: %w", err)
 	}
 
@@ -116,14 +116,14 @@ func replaceQuotes(ctx context.Context, index *meilisearch.Index, quotes []model
 		return fmt.Errorf("add documents: %w", err)
 	}
 
-	if _, err := index.WaitForTask(addTask.TaskUID, meilisearch.WaitParams{Context: ctx, Interval: time.Second}); err != nil {
+	if _, err := index.WaitForTaskWithContext(ctx, addTask.TaskUID, time.Second); err != nil {
 		return fmt.Errorf("wait add: %w", err)
 	}
 
 	return nil
 }
 
-func enrichQuotes(ctx context.Context, index *meilisearch.Index, quotes []model.Quote, enriched []model.Quote) error {
+func enrichQuotes(ctx context.Context, index meilisearch.IndexManager, quotes []model.Quote, enriched []model.Quote) error {
 	existingsPerCharacter := make(map[string][]model.Quote)
 
 	for _, quote := range quotes {
@@ -184,7 +184,7 @@ func enrichQuotes(ctx context.Context, index *meilisearch.Index, quotes []model.
 			return fmt.Errorf("update quote: %w", err)
 		}
 
-		if _, err := index.WaitForTask(updateTask.TaskUID, meilisearch.WaitParams{Context: ctx, Interval: time.Second}); err != nil {
+		if _, err := index.WaitForTaskWithContext(ctx, updateTask.TaskUID, time.Second); err != nil {
 			return fmt.Errorf("wait update: %w", err)
 		}
 	}
@@ -195,7 +195,7 @@ func enrichQuotes(ctx context.Context, index *meilisearch.Index, quotes []model.
 			return fmt.Errorf("add quote: %w", err)
 		}
 
-		if _, err := index.WaitForTask(addTask.TaskUID, meilisearch.WaitParams{Context: ctx, Interval: time.Second}); err != nil {
+		if _, err := index.WaitForTaskWithContext(ctx, addTask.TaskUID, time.Second); err != nil {
 			return fmt.Errorf("wait add: %w", err)
 		}
 	}
