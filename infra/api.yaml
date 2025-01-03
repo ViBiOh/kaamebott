@@ -64,7 +64,7 @@ spec:
       KAAMEBOTT_SLACK_SIGNING_SECRET: AgAJd7lLP10aHQRJnhjoFWytjdO1Tt2DAzOrw7ayJK7DRyKRU+2+TGFTTNPSPSC2p54kU1DnBGiW+h6SYwSnNIU3tzfuWBBuwkIu1cdVycpn0Ezkszd0Z8us2sh+kav7LTbRarvc+9aCgblOjadyF06NBmadubdEveEFt266i9ShOiLxcKYnfco6RweOJDS2D0fl1SeytVe2ipFY1w9Byns46EjU+CWOZhPCC4VxcQJfQQC7eZs/8R1o9tvPVQR0Ah4BYrHbbMq2JUrgSLmRRx8PKRft0qzsh/Ca3dcQC+4Y9YXt1cXUnD92a8Tn30jU83hjM7Gkx/u14AMNe5wQvzb+8PSjfQF4q51pgqY5KHcHxqn6qbD7KpDI92Qt3ffjpDUuetokPxJFczCEAjhWGKOcurJac7NqJyf/zRCKrrEKksyeaebITYbiZ7hCHXFSfMhJ9DLxtx/cifipANOCeQWTz+tqGjn1P8ZzEAcHZzxbBRc9HjJN2eQI2ToMnlgtgeN2vobXcg/CHV5I+Q5N8AJc9rqGG3y+/f5EFiU+m/xxQ02sE9/gLH6RnvLk9Ea+Cj1BkQA7Ahq7leQ5GfSsrM7XAflKnJ49m9onHVV755+4aDeK4TpgDfxMp0kSV8afhxi6JQp7EJIOVz4DsHO9Gy2Z3/8z1irQ4GJe4iuPr5rGlG1swIEAEmoG8yxG4jVXfLH0VcPf93hOWAiswo49d6qc4auX/w7NBc4/zNwc1AufQg==
     initContainers:
       - name: discord
-        image: vibioh/discord_configure:v0.7.5 # {"$imagepolicy": "default:discord-configure"}
+        image: vibioh/discord_configure:v0.7.6 # {"$imagepolicy": "default:discord-configure"}
         imagePullPolicy: Always
         env:
           - name: DISCORD_APPLICATION_ID
