@@ -8,7 +8,7 @@ require (
 	github.com/ViBiOh/ChatPotte v0.8.0
 	github.com/ViBiOh/flags v1.6.0
 	github.com/ViBiOh/httputils/v4 v4.81.6
-	github.com/meilisearch/meilisearch-go v0.30.0
+	github.com/meilisearch/meilisearch-go v0.31.0
 	go.opentelemetry.io/otel/trace v1.34.0
 	golang.org/x/text v0.22.0
 )
@@ -26,7 +26,7 @@ require (
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.26.0 // indirect
 	github.com/josharian/intern v1.0.0 // indirect
 	github.com/klauspost/cpuid/v2 v2.2.9 // indirect
-	github.com/mailru/easyjson v0.7.7 // indirect
+	github.com/mailru/easyjson v0.9.0 // indirect
 	github.com/rabbitmq/amqp091-go v1.10.0 // indirect
 	github.com/redis/go-redis/extra/rediscmd/v9 v9.7.0 // indirect
 	github.com/redis/go-redis/extra/redisotel/v9 v9.7.0 // indirect
