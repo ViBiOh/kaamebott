@@ -21,6 +21,7 @@ const (
 
 	kaamelottName = "kaamelott"
 	oss117Name    = "oss117"
+	abitbolName   = "abitbol"
 )
 
 var (
@@ -31,6 +32,7 @@ var (
 var indexes = map[string]string{
 	kaamelottName: kaamelottName,
 	oss117Name:    oss117Name,
+	abitbolName:   abitbolName,
 }
 
 func (s Service) DiscordHandler(ctx context.Context, webhook discord.InteractionRequest) (discord.InteractionResponse, bool, func(context.Context) discord.InteractionResponse) {
@@ -194,6 +196,9 @@ func (s Service) getQuoteEmbed(indexName string, quote model.Quote) discord.Embe
 	case oss117Name:
 		return s.getOss117Embeds(quote)
 
+	case abitbolName:
+		return s.getAbitbolEmbeds(quote)
+
 	default:
 		return discord.Embed{
 			Title:       "Error",
@@ -229,6 +234,18 @@ func (s Service) getOss117Embeds(quote model.Quote) discord.Embed {
 		Thumbnail:   discord.NewImage(fmt.Sprintf("%s/images/oss117.png", s.website)),
 		Fields: []discord.Field{
 			discord.NewField("Personnage", quote.Character),
+		},
+	}
+}
+
+func (s Service) getAbitbolEmbeds(quote model.Quote) discord.Embed {
+	return discord.Embed{
+		Title:       quote.Context,
+		Description: quote.Value,
+		URL:         quote.URL,
+		Thumbnail:   discord.NewImage(quote.Image),
+		Fields: []discord.Field{
+			discord.NewField("Acteur", quote.Character),
 		},
 	}
 }

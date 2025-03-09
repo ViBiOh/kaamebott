@@ -144,6 +144,9 @@ func (s Service) getContentBlock(indexName string, quote model.Quote) []slack.Bl
 	case "oss117":
 		return []slack.Block{s.getOss117Block(quote)}
 
+	case "abitbol":
+		return []slack.Block{s.getAbitbolBlock(quote)}
+
 	default:
 		return nil
 	}
@@ -189,6 +192,13 @@ func (s Service) getKaamelottBlock(quote model.Quote) []slack.Block {
 func (s Service) getOss117Block(quote model.Quote) slack.Block {
 	text := slack.NewText(fmt.Sprintf("*%s*\n\n_%s_ %s", quote.Context, quote.Character, quote.Value))
 	accessory := slack.NewAccessory(fmt.Sprintf("%s/images/oss117.png", s.website), "oss117")
+
+	return slack.NewSection(text).WithAccessory(accessory)
+}
+
+func (s Service) getAbitbolBlock(quote model.Quote) slack.Block {
+	text := slack.NewText(fmt.Sprintf("*<%s|%s>*\n\n_%s_ %s", quote.URL, quote.Context, quote.Character, quote.Value))
+	accessory := slack.NewAccessory(quote.Image, "abitbol")
 
 	return slack.NewSection(text).WithAccessory(accessory)
 }

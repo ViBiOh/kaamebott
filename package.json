@@ -1,0 +1,7 @@
+{
+  "type": "module",
+  "devDependencies": {
+    "he": "1.2.0",
+    "node-html-parser": "7.0.1"
+  }
+}

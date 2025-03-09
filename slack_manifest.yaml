@@ -21,6 +21,11 @@ features:
       description: Get an OSS117 quote
       usage_hint: "[searched text]"
       should_escape: false
+    - command: /abitbol
+      url: https://kaamebott.vibioh.fr/slack/abitbol
+      description: Get an Abitbol quote
+      usage_hint: "[searched text]"
+      should_escape: false
 oauth_config:
   redirect_urls:
     - https://kaamebott.vibioh.fr/slack/oauth

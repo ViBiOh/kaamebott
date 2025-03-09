@@ -118,6 +118,20 @@ spec:
                       "required": true
                     }
                   ]
+                },
+                "abitbol": {
+                  "name": "abitbol",
+                  "description": "Une citation du Grand Détournement",
+                  "integration_types": [0, 1],
+                  "contexts": [0, 2],
+                  "options": [
+                    {
+                      "name": "recherche",
+                      "description": "Un mot clé pour affiner la recherche",
+                      "type": 3,
+                      "required": true
+                    }
+                  ]
                 }
               }
           - name: DISCORD_CLIENT_ID
