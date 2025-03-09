@@ -244,8 +244,5 @@ func (s Service) getAbitbolEmbeds(quote model.Quote) discord.Embed {
 		Description: quote.Value,
 		URL:         quote.URL,
 		Thumbnail:   discord.NewImage(quote.Image),
-		Fields: []discord.Field{
-			discord.NewField("Acteur", quote.Character),
-		},
 	}
 }
