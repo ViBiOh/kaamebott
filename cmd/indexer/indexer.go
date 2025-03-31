@@ -41,7 +41,7 @@ func main() {
 
 	_ = fs.Parse(os.Args[1:])
 
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second*30)
+	ctx, cancel := context.WithTimeout(context.Background(), time.Minute)
 	defer cancel()
 
 	searchClient := meilisearch.New(*searchURL)
