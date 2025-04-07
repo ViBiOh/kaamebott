@@ -23,12 +23,12 @@ spec:
   values:
     nameOverride: kaamebott
     image:
-      name: vibioh/kaamebott
-      tag: "202503311523" # {"$imagepolicy": "default:flux-kaamebott-api:tag"}
+      name: rg.fr-par.scw.cloud/vibioh/kaamebott
+      tag: "202504071857" # {"$imagepolicy": "default:flux-kaamebott-api:tag"}
     labels:
       tags.datadoghq.com/env: "production"
       tags.datadoghq.com/service: "kaamebott"
-      tags.datadoghq.com/version: "202503311523" # {"$imagepolicy": "default:flux-kaamebott-api:tag"}
+      tags.datadoghq.com/version: "202504071857" # {"$imagepolicy": "default:flux-kaamebott-api:tag"}
     env:
       - name: GOMAXPROCS
         valueFrom:
