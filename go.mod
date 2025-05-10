@@ -5,7 +5,7 @@ go 1.24
 toolchain go1.24.0
 
 require (
-	github.com/ViBiOh/ChatPotte v0.8.4
+	github.com/ViBiOh/ChatPotte v0.8.5
 	github.com/ViBiOh/flags v1.6.0
 	github.com/ViBiOh/httputils/v4 v4.81.10
 	github.com/meilisearch/meilisearch-go v0.32.0
