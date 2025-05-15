@@ -133,7 +133,7 @@ func enrichQuotes(ctx context.Context, index meilisearch.IndexManager, quotes []
 
 		var found bool
 
-		for _, character := range strings.Split(quote.Character, ",") {
+		for character := range strings.SplitSeq(quote.Character, ",") {
 			sanitizedCharacter, err := sanitizeName(character)
 			if err != nil {
 				return fmt.Errorf("sanitize character `%s`: %w", character, err)
