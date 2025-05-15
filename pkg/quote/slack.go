@@ -102,6 +102,10 @@ func (s Service) getQuoteBlock(ctx context.Context, index, query string, offset 
 			return slack.NewEphemeralMessage(fmt.Sprintf("We found nothing for `%s`", query))
 		}
 
+		if errors.Is(err, search.ErrIndexNotFound) {
+			return slack.NewEphemeralMessage("Tout doux bijou, le moteur de recherche était pété, je le redémarre.")
+		}
+
 		slog.LogAttrs(ctx, slog.LevelError, "search error", slog.String("index", index), slog.String("query", query), slog.Int("offset", offset), slog.Any("error", err))
 		return slack.NewError(err)
 	}

@@ -17,7 +17,7 @@ script_dir() {
 main() {
   ./abitbol.js | jq >"$(script_dir)/pkg/indexer/indexes/abitbol.json"
 
-  INDEXER_INPUT="abitbol.json" make run-indexer
+  INDEXER_NAME="abitbol" make run-indexer
 }
 
 main "${@}"

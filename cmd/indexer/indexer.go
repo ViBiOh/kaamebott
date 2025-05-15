@@ -17,7 +17,7 @@ func main() {
 	fs := flag.NewFlagSet("indexer", flag.ExitOnError)
 	fs.Usage = flags.Usage(fs)
 
-	inputFile := flags.New("name", "JSON File name").DocPrefix("indexer").String(fs, "", nil)
+	indexName := flags.New("name", "Index Name").DocPrefix("indexer").String(fs, "", nil)
 	searchURL := flags.New("url", "Meilisearch URL").DocPrefix("indexer").String(fs, "http://localhost:7700", nil)
 
 	_ = fs.Parse(os.Args[1:])
@@ -27,7 +27,7 @@ func main() {
 
 	searchClient := meilisearch.New(*searchURL)
 
-	logger.FatalfOnErr(ctx, indexer.Index(ctx, searchClient, *inputFile), "index")
+	logger.FatalfOnErr(ctx, indexer.Index(ctx, searchClient, *indexName), "index")
 
-	slog.LogAttrs(ctx, slog.LevelInfo, "Collection indexed", slog.String("collection", *inputFile))
+	slog.LogAttrs(ctx, slog.LevelInfo, "Collection indexed", slog.String("collection", *indexName))
 }

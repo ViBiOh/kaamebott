@@ -128,6 +128,10 @@ func (s Service) handleSearch(ctx context.Context, indexName, query string, offs
 	quote, err := s.search.Search(ctx, indexName, query, offset)
 
 	if err != nil && !errors.Is(err, search.ErrNotFound) {
+		if errors.Is(err, search.ErrIndexNotFound) {
+			return discord.NewEphemeral(offset != 0, "Tout doux bijou, le moteur de recherche était pété, je le redémarre.")
+		}
+
 		slog.LogAttrs(ctx, slog.LevelError, "search", slog.String("index", indexName), slog.String("query", query), slog.Int("offset", offset), slog.Any("error", err))
 		return discord.NewEphemeral(offset != 0, fmt.Sprintf("Oh, it's broken 😱. Reason: %s", err))
 	}

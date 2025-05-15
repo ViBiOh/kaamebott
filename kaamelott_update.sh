@@ -22,7 +22,7 @@ main() {
 
   curl --disable --silent --show-error --location --max-time 30 "https://raw.githubusercontent.com/kaamelott-gifboard/kaamelott-gifboard/main/gifs.json" | jq '[ .[] | {id: ("gif-" + .slug), value: .quote, character: (.characters_speaking|join(", ")), image: ("https://kaamelott-gifboard.fr/gifs/" + .filename) } ]' >"${SCRIPT_DIR}/pkg/indexer/indexes/kaamelott_next.json"
 
-  INDEXER_INPUT="kaamelott.json" make run-indexer
+  INDEXER_NAME="kaamelott" make run-indexer
 }
 
 main "${@}"

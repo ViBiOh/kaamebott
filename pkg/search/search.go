@@ -21,7 +21,7 @@ import (
 
 var (
 	ErrNotFound      = native_errors.New("no result found")
-	ErrIndexNotFound = native_errors.New("L'administrateur a surement redémarré la recherche mais n'a pas réindexé le contenu")
+	ErrIndexNotFound = native_errors.New("index not found")
 	FuncMap          = template.FuncMap{}
 )
 
@@ -72,22 +72,15 @@ func (s Service) GetByID(ctx context.Context, indexName, id string) (model.Quote
 }
 
 func (s Service) Search(ctx context.Context, indexName, query string, offset int) (model.Quote, error) {
-	var indexed bool
-
-get:
 	index, err := s.search.GetIndex(indexName)
 	if err != nil {
 		var meiliError *meilisearch.Error
 		if errors.As(err, &meiliError) && meiliError.StatusCode == http.StatusNotFound {
-			if !indexed {
-				indexed = true
-
+			go func(ctx context.Context) {
 				if indexErr := indexer.Index(ctx, s.search, indexName); indexErr != nil {
 					slog.LogAttrs(ctx, slog.LevelError, fmt.Sprintf("fail to index `%s`", indexName), slog.Any("error", indexErr))
-				} else {
-					goto get
 				}
-			}
+			}(context.WithoutCancel(ctx))
 
 			return model.Quote{}, ErrIndexNotFound
 		}
