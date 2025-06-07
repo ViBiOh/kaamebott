@@ -10,7 +10,7 @@ require (
 	github.com/ViBiOh/httputils/v4 v4.81.13
 	github.com/meilisearch/meilisearch-go v0.32.0
 	go.opentelemetry.io/otel/trace v1.36.0
-	golang.org/x/text v0.25.0
+	golang.org/x/text v0.26.0
 )
 
 require (
