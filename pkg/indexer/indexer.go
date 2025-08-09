@@ -15,7 +15,10 @@ import (
 	"github.com/meilisearch/meilisearch-go"
 )
 
-var indexFolder = "indexes"
+var (
+	id          = "id"
+	indexFolder = "indexes"
+)
 
 //go:embed indexes
 var fs embed.FS
@@ -98,7 +101,7 @@ func replaceQuotes(ctx context.Context, index meilisearch.IndexManager, quotes [
 		return fmt.Errorf("wait delete: %w", err)
 	}
 
-	addTask, err := index.AddDocuments(quotes, "id")
+	addTask, err := index.AddDocuments(quotes, &id)
 	if err != nil {
 		return fmt.Errorf("add documents: %w", err)
 	}
@@ -166,7 +169,7 @@ func enrichQuotes(ctx context.Context, index meilisearch.IndexManager, quotes []
 	}
 
 	if len(toUpdate) != 0 {
-		updateTask, err := index.UpdateDocuments(toUpdate)
+		updateTask, err := index.UpdateDocuments(toUpdate, &id)
 		if err != nil {
 			return fmt.Errorf("update quote: %w", err)
 		}
@@ -177,7 +180,7 @@ func enrichQuotes(ctx context.Context, index meilisearch.IndexManager, quotes []
 	}
 
 	if len(toAdd) != 0 {
-		addTask, err := index.AddDocuments(toAdd)
+		addTask, err := index.AddDocuments(toAdd, &id)
 		if err != nil {
 			return fmt.Errorf("add quote: %w", err)
 		}

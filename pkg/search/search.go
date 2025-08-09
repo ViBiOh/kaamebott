@@ -99,7 +99,12 @@ func (s Service) Search(ctx context.Context, indexName, query string, offset int
 
 	var output model.Quote
 
-	return output, index.GetDocument(results.Hits[0].(map[string]any)["id"].(string), &meilisearch.DocumentQuery{}, &output)
+	var content map[string]any
+	if err := results.Hits[0].Decode(&content); err != nil {
+		return model.Quote{}, err
+	}
+
+	return output, index.GetDocument(content["id"].(string), &meilisearch.DocumentQuery{}, &output)
 }
 
 func (s Service) Random(ctx context.Context, indexName string) (model.Quote, error) {
