@@ -42,7 +42,7 @@ func Index(ctx context.Context, searchClient meilisearch.ServiceManager, name st
 
 	enriched, _, err := readQuotes(ctx, name+"_next.json")
 	if err != nil {
-		slog.LogAttrs(ctx, slog.LevelError, "load quote enrichment", slog.String("name", name), slog.Any("error", err))
+		slog.LogAttrs(ctx, slog.LevelWarn, "load quote enrichment", slog.String("name", name), slog.Any("error", err))
 	}
 
 	if err := enrichQuotes(ctx, index, quotes, enriched); err != nil {
