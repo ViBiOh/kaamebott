@@ -100,7 +100,7 @@ func (s Service) Search(ctx context.Context, indexName, query string, offset int
 	var output model.Quote
 
 	var content map[string]any
-	if err := results.Hits[0].Decode(&content); err != nil {
+	if err := results.Hits[0].DecodeInto(&content); err != nil {
 		return model.Quote{}, err
 	}
 
