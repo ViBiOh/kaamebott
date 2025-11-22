@@ -8,7 +8,7 @@ require (
 	github.com/ViBiOh/ChatPotte v0.8.5
 	github.com/ViBiOh/flags v1.6.1
 	github.com/ViBiOh/httputils/v4 v4.83.3
-	github.com/meilisearch/meilisearch-go v0.34.1
+	github.com/meilisearch/meilisearch-go v0.34.2
 	go.opentelemetry.io/otel/trace v1.38.0
 	golang.org/x/text v0.31.0
 )
