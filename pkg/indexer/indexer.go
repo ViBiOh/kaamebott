@@ -92,7 +92,7 @@ func getIndex(ctx context.Context, search meilisearch.ServiceManager, name strin
 }
 
 func replaceQuotes(ctx context.Context, index meilisearch.IndexManager, quotes []model.Quote) error {
-	deleteTask, err := index.DeleteAllDocuments()
+	deleteTask, err := index.DeleteAllDocuments(&meilisearch.DocumentOptions{})
 	if err != nil {
 		return fmt.Errorf("delete documents: %w", err)
 	}
@@ -101,7 +101,7 @@ func replaceQuotes(ctx context.Context, index meilisearch.IndexManager, quotes [
 		return fmt.Errorf("wait delete: %w", err)
 	}
 
-	addTask, err := index.AddDocuments(quotes, &id)
+	addTask, err := index.AddDocuments(quotes, &meilisearch.DocumentOptions{PrimaryKey: &id})
 	if err != nil {
 		return fmt.Errorf("add documents: %w", err)
 	}
@@ -113,7 +113,7 @@ func replaceQuotes(ctx context.Context, index meilisearch.IndexManager, quotes [
 	return nil
 }
 
-func enrichQuotes(ctx context.Context, index meilisearch.IndexManager, quotes []model.Quote, enriched []model.Quote) error {
+func enrichQuotes(ctx context.Context, index meilisearch.IndexManager, quotes, enriched []model.Quote) error {
 	existingsPerCharacter := make(map[string][]model.Quote)
 
 	for _, quote := range quotes {
@@ -169,7 +169,7 @@ func enrichQuotes(ctx context.Context, index meilisearch.IndexManager, quotes []
 	}
 
 	if len(toUpdate) != 0 {
-		updateTask, err := index.UpdateDocuments(toUpdate, &id)
+		updateTask, err := index.UpdateDocuments(toUpdate, &meilisearch.DocumentOptions{PrimaryKey: &id})
 		if err != nil {
 			return fmt.Errorf("update quote: %w", err)
 		}
@@ -180,7 +180,7 @@ func enrichQuotes(ctx context.Context, index meilisearch.IndexManager, quotes []
 	}
 
 	if len(toAdd) != 0 {
-		addTask, err := index.AddDocuments(toAdd, &id)
+		addTask, err := index.AddDocuments(toAdd, &meilisearch.DocumentOptions{PrimaryKey: &id})
 		if err != nil {
 			return fmt.Errorf("add quote: %w", err)
 		}
