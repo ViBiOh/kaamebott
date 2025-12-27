@@ -7,7 +7,7 @@ toolchain go1.25.0
 require (
 	github.com/ViBiOh/ChatPotte v0.9.0
 	github.com/ViBiOh/flags v1.6.1
-	github.com/ViBiOh/httputils/v4 v4.83.6
+	github.com/ViBiOh/httputils/v4 v4.84.0
 	github.com/meilisearch/meilisearch-go v0.34.2
 	go.opentelemetry.io/otel/trace v1.39.0
 	golang.org/x/text v0.32.0
@@ -45,8 +45,8 @@ require (
 	go.opentelemetry.io/proto/otlp v1.9.0 // indirect
 	golang.org/x/net v0.48.0 // indirect
 	golang.org/x/sys v0.39.0 // indirect
-	google.golang.org/genproto/googleapis/api v0.0.0-20251202230838-ff82c1b0f217 // indirect
-	google.golang.org/genproto/googleapis/rpc v0.0.0-20251202230838-ff82c1b0f217 // indirect
+	google.golang.org/genproto/googleapis/api v0.0.0-20251213004720-97cd9d5aeac2 // indirect
+	google.golang.org/genproto/googleapis/rpc v0.0.0-20251213004720-97cd9d5aeac2 // indirect
 	google.golang.org/grpc v1.77.0 // indirect
-	google.golang.org/protobuf v1.36.10 // indirect
+	google.golang.org/protobuf v1.36.11 // indirect
 )
