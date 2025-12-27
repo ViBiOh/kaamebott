@@ -18,7 +18,7 @@ func main() {
 	fs.Usage = flags.Usage(fs)
 
 	indexName := flags.New("name", "Index Name").DocPrefix("indexer").String(fs, "", nil)
-	searchURL := flags.New("url", "Meilisearch URL").DocPrefix("indexer").String(fs, "http://localhost:7700", nil)
+	searchURL := flags.New("url", "Meilisearch URL").DocPrefix("indexer").String(fs, "http://127.0.0.1:7700", nil)
 
 	_ = fs.Parse(os.Args[1:])
 
