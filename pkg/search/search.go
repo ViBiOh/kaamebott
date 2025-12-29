@@ -3,7 +3,6 @@ package search
 import (
 	"context"
 	"errors"
-	native_errors "errors"
 	"flag"
 	"fmt"
 	"html/template"
@@ -20,8 +19,8 @@ import (
 )
 
 var (
-	ErrNotFound      = native_errors.New("no result found")
-	ErrIndexNotFound = native_errors.New("index not found")
+	ErrNotFound      = errors.New("no result found")
+	ErrIndexNotFound = errors.New("index not found")
 	FuncMap          = template.FuncMap{}
 )
 

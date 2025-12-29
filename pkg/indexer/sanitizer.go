@@ -44,7 +44,7 @@ func sanitizeName(name string) (string, error) {
 		return "", err
 	}
 
-	withoutSpaces := strings.Replace(withoutDiacritics, " ", "", -1)
+	withoutSpaces := strings.ReplaceAll(withoutDiacritics, " ", "")
 	withoutQuotes := quotesChar.ReplaceAllString(withoutSpaces, "")
 	withoutSpecials := specialChars.ReplaceAllString(withoutQuotes, "")
 	withoutPathEscape := pathEscape.ReplaceAllString(withoutSpecials, "")
