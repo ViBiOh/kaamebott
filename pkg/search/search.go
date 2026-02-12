@@ -73,8 +73,7 @@ func (s Service) GetByID(ctx context.Context, indexName, id string) (model.Quote
 func (s Service) Search(ctx context.Context, indexName, query string, offset int) (model.Quote, error) {
 	index, err := s.search.GetIndex(indexName)
 	if err != nil {
-		var meiliError *meilisearch.Error
-		if errors.As(err, &meiliError) && meiliError.StatusCode == http.StatusNotFound {
+		if meiliError, ok := errors.AsType[*meilisearch.Error](err); ok && meiliError.StatusCode == http.StatusNotFound {
 			go func(ctx context.Context) {
 				if indexErr := indexer.Index(ctx, s.search, indexName); indexErr != nil {
 					slog.LogAttrs(ctx, slog.LevelError, fmt.Sprintf("fail to index `%s`", indexName), slog.Any("error", indexErr))
