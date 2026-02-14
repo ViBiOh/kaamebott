@@ -8,7 +8,7 @@ require (
 	github.com/ViBiOh/ChatPotte v0.9.0
 	github.com/ViBiOh/flags v1.6.1
 	github.com/ViBiOh/httputils/v4 v4.84.3
-	github.com/meilisearch/meilisearch-go v0.36.0
+	github.com/meilisearch/meilisearch-go v0.36.1
 	go.opentelemetry.io/otel/trace v1.40.0
 	golang.org/x/text v0.33.0
 )
@@ -21,7 +21,7 @@ require (
 	github.com/felixge/httpsnoop v1.0.4 // indirect
 	github.com/go-logr/logr v1.4.3 // indirect
 	github.com/go-logr/stdr v1.2.2 // indirect
-	github.com/golang-jwt/jwt/v5 v5.3.0 // indirect
+	github.com/golang-jwt/jwt/v5 v5.3.1 // indirect
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.27.5 // indirect
 	github.com/klauspost/cpuid/v2 v2.3.0 // indirect
