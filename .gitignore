@@ -12,5 +12,4 @@ profile.out
 .env
 
 # Files
-ca-certificates.crt
-zoneinfo.zip
+cacert.pem
